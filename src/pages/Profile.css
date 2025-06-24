@@ -1,0 +1,74 @@
+.profile-page-container {
+    width: 100%;
+    max-width: 1024px;
+    padding: 2rem;
+}
+
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.profile-header h1 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--foreground);
+}
+
+.theme-switcher {
+    position: relative;
+    cursor: pointer;
+}
+
+/* User Stats Card */
+.user-stats-card {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.user-stats-card h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 1.5rem 0;
+    color: var(--card-foreground);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+}
+
+.stat-item .stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0;
+}
+
+.stat-item .stat-label {
+    font-size: 1rem;
+    color: var(--muted-foreground);
+    margin: 0;
+}
+
+/* Clerk Profile Wrapper */
+.clerk-profile-wrapper {
+    --cl-card-background-color: var(--card);
+    --cl-card-border-color: var(--border);
+    --cl-primary-color: var(--primary);
+    --cl-body-text-color: var(--foreground);
+    --cl-title-text-color: var(--foreground);
+    --cl-subtitle-text-color: var(--muted-foreground);
+    --cl-label-text-color: var(--foreground);
+    --cl-input-background-color: var(--background);
+    --cl-input-text-color: var(--foreground);
+    --cl-input-border-color: var(--border);
+} 
