@@ -5,7 +5,7 @@ import './Profile.css';
 
 export default function Profile() {
   const { user } = useUser();
-  const { theme, setTheme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const notes = user?.unsafeMetadata.notes as any[] || [];
 
   return (

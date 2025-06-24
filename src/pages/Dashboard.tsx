@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import * as CryptoJS from 'crypto-js';
 import toast from 'react-hot-toast';
-import { Plus, Lock, Trash2, Save, Unlock, X, KeyRound, ShieldOff, Search, Bold, Italic, Underline, Heading, PaintBucket } from 'lucide-react';
+import { Plus, Lock, Trash2, Save, ShieldOff, Search, Bold, Italic, Underline, Heading, PaintBucket, X } from 'lucide-react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import BoldExt from '@tiptap/extension-bold';
@@ -101,9 +101,6 @@ export default function Dashboard() {
     const [tempUnlockedContent, setTempUnlockedContent] = useState<string | null>(null);
     const prevNoteIdRef = useRef<string | null>(null);
     const autoSaveTimeoutRef = useRef<number | null>(null);
-    const [deletePassword, setDeletePassword] = useState('');
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [deleteNoteId, setDeleteNoteId] = useState<string | null>(null);
     const [passwordAttempts, setPasswordAttempts] = useState<{[id: string]: number}>({});
     const [tagInput, setTagInput] = useState('');
 

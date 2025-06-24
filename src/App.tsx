@@ -3,7 +3,7 @@ import Header from './components/Header';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
-import { SignedIn, SignedOut, SignIn, SignUp, UserProfile } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, SignIn, SignUp } from '@clerk/clerk-react';
 import RedirectToSignIn from './components/RedirectToSignIn';
 import { Toaster } from 'react-hot-toast';
 
