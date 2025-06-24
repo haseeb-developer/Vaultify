@@ -48,6 +48,22 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Docs Section */}
+      <section className="docs-section">
+        <h2 className="section-title">Docs & Help</h2>
+        <div className="docs-content">
+          <p className="docs-description">
+            Need help or want to learn more? Check out our documentation and guides to get the most out of SAFE UR DATA.
+          </p>
+          <ul className="docs-links">
+            <li><a href="https://docs.safeurdata.com/getting-started" target="_blank" rel="noopener noreferrer">Getting Started Guide</a></li>
+            <li><a href="https://docs.safeurdata.com/security" target="_blank" rel="noopener noreferrer">Security Best Practices</a></li>
+            <li><a href="https://docs.safeurdata.com/faq" target="_blank" rel="noopener noreferrer">Frequently Asked Questions</a></li>
+            <li><a href="mailto:support@safeurdata.com">Contact Support</a></li>
+          </ul>
+        </div>
+      </section>
     </div>
   );
 } 

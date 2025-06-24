@@ -32,15 +32,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem 3.5rem;
-  background: var(--header-bg);
   border-bottom: 1.5px solid var(--header-border);
   font-family: var(--header-font);
   position: sticky;
   top: 0;
+  margin: 0 40px 0 40px;
   z-index: 100;
   box-shadow: var(--header-shadow);
   border-radius: var(--header-radius);
-  margin: 1.5rem 2.5rem 2.5rem 2.5rem;
   backdrop-filter: blur(24px);
   transition: background 0.3s, border 0.3s, box-shadow 0.3s;
   animation: floatIn 1.2s cubic-bezier(.23,1.01,.32,1) 0s 1;

@@ -15,7 +15,10 @@ export default function Header() {
           <span className="logo-icon"><Sparkles size={28} /></span>
           <span className="logo-text">SAFE UR DATA</span>
         </Link>
-        <SignedIn>
+     
+      </div>
+      <div className="header-center">
+      <SignedIn>
           <nav className="nav-links">
             <Link to="/dashboard" className="nav-link nav-animated">Dashboard</Link>
             <Link to="/profile" className="nav-link nav-animated">Profile</Link>
