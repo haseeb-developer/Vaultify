@@ -1,6 +1,6 @@
 import { UserProfile, useUser, useClerk } from '@clerk/clerk-react';
 import { useTheme } from '../contexts/ThemeProvider';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Moon, Sun, Calendar, KeyRound, LogIn, Smartphone, ShieldCheck, Edit3, MailCheck, UserCheck, LogOut, Eye, X, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import './Profile.css';
@@ -66,6 +66,50 @@ export default function Profile() {
   // Modal states
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // --- New state for activity tracking ---
+  const [activeCount, setActiveCount] = useState<number>(0);
+  const [latestVisitors, setLatestVisitors] = useState<any[]>([]);
+  const [activityLoading, setActivityLoading] = useState(true);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+
+  // --- Post activity on mount ---
+  useEffect(() => {
+    if (!user) return;
+    fetch('/api/activity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: user.id,
+        username: user.username || user.firstName || user.emailAddresses?.[0]?.emailAddress || 'Unknown',
+      }),
+    });
+  }, [user]);
+
+  // --- Poll for latest visitors and active count ---
+  useEffect(() => {
+    let isMounted = true;
+    function fetchActivity() {
+      fetch('/api/activity')
+        .then((res) => res.json())
+        .then((data) => {
+          if (!isMounted) return;
+          setActiveCount(data.activeCount);
+          setLatestVisitors(data.latest);
+          setActivityLoading(false);
+        })
+        .catch(() => {
+          if (!isMounted) return;
+          setActivityLoading(false);
+        });
+    }
+    fetchActivity();
+    pollingRef.current = setInterval(fetchActivity, 5000);
+    return () => {
+      isMounted = false;
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, []);
 
   // Simulated/derived advanced stats (replace with real data if available)
   const stats: { label: string; value: string | number; icon: React.ReactElement; tooltip: string }[] = [
@@ -189,6 +233,39 @@ export default function Profile() {
           >
             <Moon color={theme === 'dark' ? '#60a5fa' : '#888'} size={22} />
           </button>
+        </div>
+      </div>
+
+      {/* --- Active Users and Latest Visitors --- */}
+      <div className="advanced-stats-card" style={{ marginBottom: 24 }}>
+        <h2>🌍 Active Users: {activityLoading ? 'Loading...' : activeCount}</h2>
+        <h3 style={{ marginTop: 12, marginBottom: 8 }}>Latest 6 Visitors</h3>
+        <div style={{ display: 'flex', flexDirection: 'row', gap: 16, flexWrap: 'wrap', minHeight: 80 }}>
+          {latestVisitors.map((v, idx) => (
+            <div key={idx} style={{
+              background: 'var(--background, #f8fafc)',
+              borderRadius: 12,
+              padding: 16,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              minWidth: 220,
+              maxWidth: 260,
+              flex: '1 1 220px',
+              border: '1px solid #e0e7ef',
+              position: 'relative',
+              transition: 'box-shadow 0.2s',
+            }}>
+              <span style={{ fontWeight: 700, fontSize: 17, color: '#334155', marginBottom: 4 }}>{v.username}</span>
+              <span style={{ fontFamily: 'monospace', color: '#64748b', fontSize: 13, marginBottom: 2 }}>IP: {v.ip}</span>
+              <span style={{ fontSize: 14, color: '#475569', marginBottom: 2 }}>Device: <b>{v.device}</b></span>
+              <span style={{ fontSize: 14, color: '#475569', marginBottom: 2 }}>OS: <b>{v.os}</b></span>
+              <span style={{ fontSize: 14, color: '#475569', marginBottom: 2 }}>Browser: <b>{v.browser}</b></span>
+              <span style={{ fontSize: 12, color: '#64748b', marginTop: 6 }}>{new Date(v.lastActive).toLocaleString()}</span>
+              <span style={{ position: 'absolute', top: 8, right: 12, fontSize: 11, color: '#a3a3a3' }}>#{idx + 1}</span>
+            </div>
+          ))}
         </div>
       </div>
 
