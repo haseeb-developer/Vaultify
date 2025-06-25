@@ -71,7 +71,7 @@ export default function Profile() {
   const [activeCount, setActiveCount] = useState<number>(0);
   const [latestVisitors, setLatestVisitors] = useState<any[]>([]);
   const [activityLoading, setActivityLoading] = useState(true);
-  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // --- Post activity on mount ---
   useEffect(() => {
