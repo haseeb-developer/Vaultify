@@ -1,6 +1,6 @@
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { useEffect, useState } from 'react';
-import { LogIn, LogOut, Smartphone, ShieldCheck, Edit3, X, AlertTriangle, UserCheck, KeyRound, MailCheck, Eye } from 'lucide-react';
+import { LogIn, LogOut, Smartphone, ShieldCheck, Edit3, KeyRound, Eye } from 'lucide-react';
 
 export default function SecurityDashboard() {
   const { user } = useUser();

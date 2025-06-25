@@ -409,15 +409,6 @@ export default function Dashboard() {
     const tagUsage: { [tag: string]: number } = {};
     notes.forEach(n => (n.tags || []).forEach(tag => { tagUsage[tag] = (tagUsage[tag] || 0) + 1; }));
 
-    // Color for each tag (hash-based)
-    function tagColor(tag: string) {
-        // Simple hash to color
-        let hash = 0;
-        for (let i = 0; i < tag.length; i++) hash = tag.charCodeAt(i) + ((hash << 5) - hash);
-        const color = `hsl(${hash % 360}, 70%, 60%)`;
-        return color;
-    }
-
     // Autocomplete suggestions
     function updateTagSuggestions(input: string) {
         if (!input) { setTagSuggestions([]); return; }
