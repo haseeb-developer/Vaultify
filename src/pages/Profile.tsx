@@ -239,7 +239,7 @@ export default function Profile() {
       {/* --- Active Users and Latest Visitors --- */}
       <div className="advanced-stats-card" style={{ marginBottom: 24 }}>
         <h2>🌍 Active Users: {activityLoading ? 'Loading...' : activeCount}</h2>
-        <h3 style={{ marginTop: 12, marginBottom: 8 }}>Latest 6 Visitors</h3>
+        <h3 style={{ marginTop: 12, marginBottom: 8 }}>Leaderboard: Latest 12 Visitors</h3>
         <div style={{ display: 'flex', flexDirection: 'row', gap: 16, flexWrap: 'wrap', minHeight: 80 }}>
           {latestVisitors.map((v, idx) => (
             <div key={idx} style={{

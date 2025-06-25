@@ -64,32 +64,50 @@ export default function handler(req, res) {
     const ua = req.headers['user-agent'] || '';
     const { device, os, browser } = parseUserAgent(ua);
     const now = Date.now();
-    // Remove old entries for this userId (keep only latest)
-    activityLog = activityLog.filter((a) => a.userId !== userId);
-    // Add new entry
-    activityLog.push({
-      userId,
-      username,
-      ip,
-      device,
-      os,
-      browser,
-      lastActive: now,
-    });
-    // Keep only last 100 entries
-    if (activityLog.length > 100) activityLog = activityLog.slice(-100);
+    // Check if user already exists
+    const existingIdx = activityLog.findIndex((a) => a.userId === userId);
+    if (existingIdx !== -1) {
+      // Update existing user
+      activityLog[existingIdx] = {
+        ...activityLog[existingIdx],
+        username,
+        ip,
+        device,
+        os,
+        browser,
+        lastActive: now,
+      };
+    } else {
+      // Add new user
+      activityLog.push({
+        userId,
+        username,
+        ip,
+        device,
+        os,
+        browser,
+        lastActive: now,
+      });
+      // If more than 12 users, remove the oldest
+      if (activityLog.length > 12) {
+        // Sort by lastActive ascending and remove the oldest
+        activityLog = activityLog
+          .sort((a, b) => a.lastActive - b.lastActive)
+          .slice(activityLog.length - 12);
+      }
+    }
     return res.status(200).json({ ok: true });
   }
   if (req.method === 'GET') {
-    // Return latest 6 visitors and active user count (last 10 min)
+    // Return all 12 users (latest by lastActive, descending)
     const now = Date.now();
     const activeUsers = activityLog.filter((a) => now - a.lastActive < 10 * 60 * 1000);
-    const latest6 = [...activityLog]
+    const latest12 = [...activityLog]
       .sort((a, b) => b.lastActive - a.lastActive)
-      .slice(0, 6);
+      .slice(0, 12);
     return res.status(200).json({
       activeCount: activeUsers.length,
-      latest: latest6,
+      latest: latest12,
     });
   }
   res.setHeader('Allow', ['GET', 'POST']);
