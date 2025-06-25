@@ -189,17 +189,34 @@ body, .app-container, .notes-dashboard-container {
     display: flex;
     flex-direction: column;
     gap: 0.7rem;
-    border-bottom: 1px solid #ddd;
+    /* border-bottom: 1px solid #ddd;
     backdrop-filter: blur(25px) saturate(180%);
     -webkit-backdrop-filter: blur(25px) saturate(180%);
     background: rgba(7, 5, 5, 0.091);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15); */
+    padding-left: 20px;
     border-radius: 10px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
     box-shadow: none;
     min-width: 0;
+    position: relative;
     transition: box-shadow 0.18s, background 0.18s;
+}
+
+.folders-list::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    height: 100%;
+    width: 10px;
+    background: linear-gradient(
+        to bottom,
+        rgba(255, 0, 128, 1),
+        rgba(37, 99, 235, 1),
+        rgba(0, 255, 204, 1),
+        rgba(255, 196, 0, 1)
+      );
+      border-radius: 10px 0 0 10px;
 }
 
 .note-filter-btn {
@@ -306,6 +323,10 @@ body, .app-container, .notes-dashboard-container {
     min-height: 72px;
     animation: noteFadeIn 0.4s cubic-bezier(.23,1.01,.32,1);
     overflow: hidden;
+}
+
+.tiptap.ProseMirror {
+    padding-top: 10px;
 }
 
 .notes-list-cards {
@@ -565,7 +586,6 @@ body, .app-container, .notes-dashboard-container {
     background: transparent;
     border: none;
     outline: none;
-    padding: 0.7rem 0;
 }
 .tiptap-editor:focus {
     outline: 2px solid var(--accent-color);
@@ -845,6 +865,10 @@ body, .app-container, .notes-dashboard-container {
     filter: brightness(1.08);
     z-index: 2;
 }
+
+.folder-card {
+    margin-bottom: 0 !important;    
+}
 .folder-card span, .all-notes-card span {
     display: inline-block;
     vertical-align: middle;
@@ -937,14 +961,12 @@ body, .app-container, .notes-dashboard-container {
     border-radius: var(--radius);
 }
 .empty-card {
-    background: #fff;
     border-radius: 2rem;
-    box-shadow: 0 8px 40px 0 rgba(79,140,255,0.13), 0 2px 24px 0 rgba(80,80,80,0.10);
     padding: 3.5rem 2.5rem 4rem 2.5rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 640px;
+    min-width: 750px;
     max-width: 520px;
     margin: 0 auto;
     position: relative;

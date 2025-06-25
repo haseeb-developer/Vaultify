@@ -27,54 +27,6 @@
   --text-secondary: #bfcfff;
 }
 
-.header, .glassy-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 3.5rem;
-  border-bottom: 1.5px solid var(--header-border);
-  font-family: var(--header-font);
-  position: sticky;
-  top: 0;
-  margin: 0 40px 0 40px;
-  z-index: 100;
-  box-shadow: var(--header-shadow);
-  border-radius: var(--header-radius);
-  backdrop-filter: blur(24px);
-  transition: background 0.3s, border 0.3s, box-shadow 0.3s;
-  animation: floatIn 1.2s cubic-bezier(.23,1.01,.32,1) 0s 1;
-  overflow: visible;
-}
-
-@keyframes floatIn {
-  0% { opacity: 0; transform: translateY(-40px) scale(0.98); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 2.5rem;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  font-size: 2.1rem;
-  font-weight: 900;
-  color: var(--accent-color);
-  text-decoration: none;
-  letter-spacing: -0.01em;
-  transition: color 0.2s, text-shadow 0.3s;
-  text-shadow: var(--neon);
-  filter: drop-shadow(0 2px 16px #4f8cff33);
-  position: relative;
-  animation: neonPulse 2.5s infinite alternate;
-}
-.logo-icon {
-  margin-right: 0.7rem;
-  animation: spinGlow 3.5s linear infinite;
-}
 @keyframes neonPulse {
   0% { text-shadow: var(--neon); }
   100% { text-shadow: 0 0 32px #a5b4fc, 0 0 64px #4f8cff99; }
@@ -83,116 +35,17 @@
   0% { filter: drop-shadow(0 0 0 #4f8cff); transform: rotate(0deg); }
   100% { filter: drop-shadow(0 0 16px #4f8cff); transform: rotate(360deg); }
 }
-
-.nav-links {
-  display: flex;
-  gap: 1.7rem;
-  position: relative;
+@keyframes floatIn {
+  0% { opacity: 0; transform: translateY(-40px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-.nav-link {
-  color: var(--text-secondary);
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 1.18rem;
-  padding: 0.4rem 1.2rem 0.4rem 1.2rem;
-  border-radius: 1.2rem;
-  position: relative;
-  transition: color 0.2s, background 0.2s;
-  overflow: visible;
+.animate-neonPulse {
+  animation: neonPulse 2.5s infinite alternate;
 }
-.nav-link.nav-animated::after {
-  content: '';
-  display: block;
-  height: 3px;
-  border-radius: 2px;
-  width: 0%;
-  background: var(--nav-underline);
-  position: absolute;
-  left: 50%;
-  bottom: -4px;
-  transform: translateX(-50%);
-  transition: width 0.35s cubic-bezier(.23,1.01,.32,1);
+.animate-spinGlow {
+  animation: spinGlow 3.5s linear infinite;
 }
-.nav-link.nav-animated:hover::after, .nav-link.nav-animated.active::after {
-  width: 80%;
-}
-.nav-link:hover, .nav-link.active {
-  color: var(--accent-color);
-  background: #e0e7ff55;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 2.2rem;
-}
-
-.theme-toggle-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.3rem 0.7rem;
-  border-radius: 1.5rem;
-  display: flex;
-  align-items: center;
-  position: relative;
-  transition: background 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(80,80,80,0.08);
-}
-.theme-toggle-btn:hover {
-  background: #e0e7ff55;
-  box-shadow: 0 4px 16px #4f8cff33;
-}
-.theme-icon {
-  transition: opacity 0.3s, transform 0.3s;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) scale(1);
-  opacity: 1;
-}
-
-.auth-buttons {
-  display: flex;
-  gap: 1.1rem;
-}
-
-.auth-button {
-  border: none;
-  padding: 0.65rem 1.5rem;
-  border-radius: 2rem;
-  font-weight: 800;
-  font-size: 1.12rem;
-  cursor: pointer;
-  background: linear-gradient(90deg, #e0e7ff 0%, #fff 100%);
-  color: var(--accent-color);
-  box-shadow: 0 2px 8px rgba(80,80,80,0.08);
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
-  letter-spacing: 0.01em;
-}
-.auth-button:hover {
-  background: var(--accent-color);
-  color: #fff;
-  box-shadow: 0 4px 16px #4f8cff33;
-  transform: scale(1.06) translateY(-2px);
-}
-.auth-button.signup {
-  background: linear-gradient(90deg, #4f8cff 60%, #a5b4fc 100%);
-  color: #fff;
-}
-.auth-button.signup:hover {
-  opacity: 0.96;
-  background: linear-gradient(90deg, #2563eb 80%, #a5b4fc 100%);
-}
-
-.user-greeting {
-  margin-right: 1.2rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  font-size: 1.18rem;
-  letter-spacing: 0.01em;
-  opacity: 0.92;
-  text-shadow: 0 1px 8px #4f8cff22;
-  transition: color 0.2s;
+.animate-fadeIn {
+  animation: floatIn 1.2s cubic-bezier(.23,1.01,.32,1) 0s 1;
 } 

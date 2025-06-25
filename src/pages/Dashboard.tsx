@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import * as CryptoJS from 'crypto-js';
 import toast from 'react-hot-toast';
-import { Plus, Lock, Trash2, Save, ShieldOff, Search, Bold, Italic, Underline, Heading, PaintBucket, X, Folder as FolderIcon, Palette, Tag, XCircle, CheckCircle } from 'lucide-react';
+import { Plus, Lock, Trash2, Save, ShieldOff, Search, Bold, Italic, Underline, Heading, PaintBucket, X, Folder as FolderIcon, Palette, Tag, Edit3, XCircle, CheckCircle, Star } from 'lucide-react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import BoldExt from '@tiptap/extension-bold';
@@ -26,7 +26,7 @@ interface Folder {
   updatedAt: string;
 }
 
-// Update Note interface to include folderId
+// Update Note interface to include folderId and isFavorite
 interface Note {
   id: string;
   title: string;
@@ -38,97 +38,132 @@ interface Note {
   updatedAt: string;
   tags?: string[];
   folderId?: string; // reference to the folder/group
+  isFavorite?: boolean; // new
 }
 
+// Password Modal (Tailwind, animated, secure)
 const PasswordModal = ({ note, onUnlock, onCancel }: { note: Note | null; onUnlock: (password: string) => void; onCancel: () => void; }) => {
     const [password, setPassword] = useState('');
+    useEffect(() => {
+        document.body.classList.add('overflow-hidden');
+        return () => document.body.classList.remove('overflow-hidden');
+    }, []);
     return (
-        <div className="modal-backdrop">
-            <div className="modal-content">
-                <button onClick={onCancel} className="modal-close-btn"><X size={20} /></button>
-                <h2>Enter Password</h2>
-                <p>This note is locked. Please enter the password to view it.</p>
-                {note?.passwordHint && <p className="password-hint">Hint: {note.passwordHint}</p>}
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm" aria-modal="true" role="dialog" tabIndex={-1}>
+            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative animate-popIn scale-95 opacity-0 animate-fadeInModal">
+                <button onClick={onCancel} className="absolute top-3 right-3 text-gray-400 hover:bg-blue-500 hover:text-white rounded-full p-2 transition-all duration-200 focus:ring-2 focus:ring-blue-400"><X size={20} /></button>
+                <h2 className="text-2xl font-bold mb-2 text-blue-600">Enter Password</h2>
+                <p className="mb-4 text-gray-500">This note is locked. Please enter the password to view it.</p>
+                {note?.passwordHint && <p className="mb-4 text-sm italic bg-gray-100 rounded px-3 py-2 text-gray-500">Hint: {note.passwordHint}</p>}
                 <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="modal-input"
+                    className="w-full border-b-2 border-gray-200 focus:border-blue-500 outline-none py-2 mb-6 text-lg transition-all duration-200 rounded-lg focus:bg-blue-50"
                     placeholder="Password"
                     autoFocus
                 />
-                <div className="modal-actions">
-                    <button onClick={onCancel} className="modal-button secondary">Cancel</button>
-                    <button onClick={() => onUnlock(password)} className="modal-button primary">Unlock</button>
+                <div className="flex justify-end gap-3">
+                    <button onClick={onCancel} className="px-5 py-2 rounded-full bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 hover:scale-105 transition-all duration-200">Cancel</button>
+                    <button onClick={() => onUnlock(password)} className="px-5 py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 hover:scale-105 transition-all duration-200">Unlock</button>
                 </div>
             </div>
         </div>
     );
 };
 
+// Set Password Modal (Tailwind, animated, secure)
 const SetPasswordModal = ({ onSetPassword, onCancel }: { onSetPassword: (password: string, hint: string) => void; onCancel: () => void; }) => {
     const [password, setPassword] = useState('');
     const [hint, setHint] = useState('');
+    const [touched, setTouched] = useState(false);
+    const minLength = 5;
+    const hasSpecial = /[^A-Za-z0-9]/.test(password);
+    const tooShort = password.length > 0 && password.length < minLength;
+    useEffect(() => {
+        document.body.classList.add('overflow-hidden');
+        return () => document.body.classList.remove('overflow-hidden');
+    }, []);
     return (
-        <div className="modal-backdrop">
-            <div className="modal-content">
-                <button onClick={onCancel} className="modal-close-btn"><X size={20} /></button>
-                <h2>Set a Password</h2>
-                <p>Secure your note with a password. You can also add an optional hint.</p>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm" aria-modal="true" role="dialog" tabIndex={-1}>
+            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative animate-popIn scale-95 opacity-0 animate-fadeInModal">
+                <button onClick={onCancel} className="absolute top-3 right-3 text-gray-400 hover:bg-blue-500 hover:text-white rounded-full p-2 transition-all duration-200 focus:ring-2 focus:ring-blue-400"><X size={20} /></button>
+                <h2 className="text-2xl font-bold mb-2 text-blue-600">Set a Password</h2>
+                <p className="mb-4 text-gray-500">Secure your note with a password. You can also add an optional hint.</p>
                 <input
                     type="password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="modal-input"
+                    onChange={(e) => { setPassword(e.target.value); setTouched(true); }}
+                    className="w-full border-b-2 border-gray-200 focus:border-blue-500 outline-none py-2 mb-1 text-lg transition-all duration-200 rounded-lg focus:bg-blue-50"
                     placeholder="Enter new password"
                     autoFocus
                 />
+                {/* Password validation feedback */}
+                <div className="min-h-[1.5rem] mb-2">
+                  {touched && password.length > 0 && (
+                    <>
+                      {tooShort && <span className="text-red-500 text-sm">Password must be at least {minLength} characters.</span>}
+                      {!tooShort && <span className="text-green-600 text-sm">Password length is good.</span>}
+                      <br />
+                      {hasSpecial ? (
+                        <span className="text-green-600 text-sm">Contains special character ✓</span>
+                      ) : (
+                        <span className="text-gray-500 text-sm">Add a special character for better security.</span>
+                      )}
+                    </>
+                  )}
+                </div>
                 <input
                     type="text"
                     value={hint}
-                    onChange={(e) => setHint(e.target.value)}
-                    className="modal-input"
+                    onChange={e => setHint(e.target.value)}
+                    className="w-full border-b-2 border-gray-200 focus:border-blue-500 outline-none py-2 mb-6 text-lg transition-all duration-200 rounded-lg focus:bg-blue-50"
                     placeholder="Password hint (optional)"
                 />
-                <div className="modal-actions">
-                    <button onClick={onCancel} className="modal-button secondary">Cancel</button>
-                    <button onClick={() => onSetPassword(password, hint)} className="modal-button primary">Set Password & Lock</button>
+                <div className="flex justify-end gap-3">
+                    <button onClick={onCancel} className="px-5 py-2 rounded-full bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 hover:scale-105 transition-all duration-200">Cancel</button>
+                    <button onClick={() => onSetPassword(password, hint)} className="px-5 py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 hover:scale-105 transition-all duration-200" disabled={tooShort}>Set Password & Lock</button>
                 </div>
             </div>
         </div>
     );
 };
 
+// FolderModal: add same modal enhancements
 const FolderModal = ({ onCreate, onCancel }: { onCreate: (name: string, color: string) => void; onCancel: () => void; }) => {
     const [name, setName] = useState('');
     const [color, setColor] = useState('#4f8cff');
+    useEffect(() => {
+        document.body.classList.add('overflow-hidden');
+        return () => document.body.classList.remove('overflow-hidden');
+    }, []);
     return (
-        <div className="modal-backdrop">
-            <div className="modal-content">
-                <button onClick={onCancel} className="modal-close-btn"><X size={20} /></button>
-                <h2><FolderIcon size={20} style={{marginRight: 8, verticalAlign: 'middle'}} /> Create Folder</h2>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm" aria-modal="true" role="dialog" tabIndex={-1}>
+            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative animate-popIn scale-95 opacity-0 animate-fadeInModal">
+                <button onClick={onCancel} className="absolute top-3 right-3 text-gray-400 hover:bg-blue-500 hover:text-white rounded-full p-2 transition-all duration-200 focus:ring-2 focus:ring-blue-400"><X size={20} /></button>
+                <h2 className="text-xl font-bold mb-2 text-blue-600 flex items-center"><FolderIcon size={20} className="mr-2" /> Create Folder</h2>
                 <input
                     type="text"
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    className="modal-input"
+                    className="w-full border-b-2 border-gray-200 focus:border-blue-500 outline-none py-2 mb-4 text-lg transition-all duration-200 rounded-lg focus:bg-blue-50"
                     placeholder="Folder name"
                     autoFocus
                 />
-                <div style={{display: 'flex', alignItems: 'center', gap: '1rem', margin: '1.2rem 0'}}>
-                    <Palette size={18} style={{opacity: 0.7}} />
+                <div className="flex items-center gap-4 my-4">
+                    <Palette size={18} className="opacity-70" />
                     <input
                         type="color"
                         value={color}
                         onChange={e => setColor(e.target.value)}
-                        style={{width: 36, height: 36, border: 'none', borderRadius: '50%', boxShadow: '0 2px 8px #0001', cursor: 'pointer'}}
+                        className="w-10 h-10 rounded-full border-2 border-blue-200 shadow cursor-pointer"
                         title="Pick folder color"
                     />
-                    <span style={{fontSize: '1.05rem', color: '#888'}}>Choose color</span>
+                    <span className="text-base text-gray-500">Choose color</span>
                 </div>
-                <div className="modal-actions">
-                    <button onClick={onCancel} className="modal-button secondary">Cancel</button>
-                    <button onClick={() => onCreate(name, color)} className="modal-button primary" disabled={!name.trim()}>Create Folder</button>
+                <div className="flex justify-end gap-3">
+                    <button onClick={onCancel} className="px-5 py-2 rounded-full bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 hover:scale-105 transition-all duration-200">Cancel</button>
+                    <button onClick={() => onCreate(name, color)} className="px-5 py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 hover:scale-105 transition-all duration-200" disabled={!name.trim()}>Create Folder</button>
                 </div>
             </div>
         </div>
@@ -158,8 +193,9 @@ export default function Dashboard() {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [selectedSuggestion, setSelectedSuggestion] = useState<number>(-1);
     const [tagError, setTagError] = useState<string | null>(null);
-    const [noteFilter, setNoteFilter] = useState<'all' | 'locked' | 'unlocked'>('all');
+    const [noteFilter, setNoteFilter] = useState<'all' | 'locked' | 'unlocked' | 'favorite'>('all');
     const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
+    const [showMarkdown, setShowMarkdown] = useState(false);
 
     const currentNote = notes.find(note => note.id === currentNoteId);
     const isTemporarilyUnlocked = currentNote?.isLocked && tempUnlockedContent !== null;
@@ -421,8 +457,19 @@ export default function Dashboard() {
         saveDataToClerk(updatedNotes, folders);
     };
 
+    // Add favorite filter to noteFilter state
+    const handleToggleFavorite = async (noteId: string) => {
+        const updatedNotes = notes.map(n => n.id === noteId ? { ...n, isFavorite: !n.isFavorite } : n);
+        await saveDataToClerk(updatedNotes, folders);
+    };
+
     // Search notes by title
-    const filteredNotes: Note[] = notes.filter(note => note.title.toLowerCase().includes(search.toLowerCase()));
+    const filteredNotes: Note[] = notes.filter(note => {
+        if (noteFilter === 'favorite') return note.isFavorite;
+        if (noteFilter === 'locked') return note.isLocked;
+        if (noteFilter === 'unlocked') return !note.isLocked;
+        return note.title.toLowerCase().includes(search.toLowerCase());
+    });
 
     // Folder creation logic (now uses modal)
     function handleCreateFolder() {
@@ -498,169 +545,140 @@ export default function Dashboard() {
             {isUnlockModalOpen && <PasswordModal note={noteToProcess} onUnlock={handleUnlockSubmit} onCancel={() => setIsUnlockModalOpen(false)} />}
             {isSetPasswordModalOpen && <SetPasswordModal onSetPassword={handleSetPassword} onCancel={() => setIsSetPasswordModalOpen(false)} />}
             {isFolderModalOpen && <FolderModal onCreate={handleCreateFolderSubmit} onCancel={() => setIsFolderModalOpen(false)} />}
-            <div className="notes-dashboard-container">
-                
-                <div className="notes-sidebar">
-                <div className="search-bar">
-                    <Search size={16} />
+            <div className="notes-dashboard-container flex flex-col lg:flex-row w-full h-full min-h-screen gap-0 lg:gap-6 xl:gap-10 overflow-x-hidden">
+                {/* SIDEBAR START */}
+                <aside className="w-full lg:w-[370px] xl:w-[400px] flex-shrink-0 bg-gradient-to-br from-blue-100/80 via-white/80 to-blue-200/80 backdrop-blur-2xl shadow-2xl rounded-b-3xl lg:rounded-3xl p-4 sm:p-6 flex flex-col gap-6 border border-blue-200/60 relative z-10 overflow-y-auto max-h-[90vh] lg:max-h-[calc(100vh-40px)] min-h-[0]">
+                    {/* Search */}
+                    <div className="flex items-center gap-3 bg-white/70 rounded-xl shadow-inner px-4 py-3 mb-2 border border-blue-100/60">
+                        <Search size={22} className="text-blue-400" />
                     <input
                         type="text"
                         placeholder="Search notes by title..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        className="search-input"
+                            className="flex-1 bg-transparent outline-none text-lg text-blue-900 placeholder:text-blue-300 font-medium"
                     />
                 </div>
-                    <div className="sidebar-header">
-                        <h2>Folders</h2>
-                        <button className="new-note-btn" onClick={handleCreateFolder}><Plus size={18} /> New Folder</button>
+                    {/* Folders Header */}
+                    <div className="flex items-center justify-between mb-1">
+                        <h2 className="text-2xl font-extrabold text-blue-700 flex items-center gap-2 tracking-tight"><FolderIcon size={26} className="text-blue-400" />Folders</h2>
+                        <button onClick={handleCreateFolder} className="bg-gradient-to-r from-blue-500 to-blue-400 text-white font-bold rounded-full px-5 py-2 flex items-center gap-2 shadow-lg hover:scale-105 active:scale-95 transition-all"><Plus size={20}/> New Folder</button>
                     </div>
+                    {/* Folders List */}
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleFolderDragEnd}>
                         <SortableContext items={folders.map(f => f.id)} strategy={verticalListSortingStrategy}>
-                    <div className="folders-list">
+                            <div className="flex flex-col gap-3">
+                                {/* Other Notes */}
                         <div
-                                    className={`folder-card all-notes-card ${currentFolderId === null ? 'active' : ''}`}
+                                    className={`group relative flex items-center gap-3 min-h-[60px] rounded-2xl px-5 py-3 cursor-pointer shadow-md border-2 transition-all duration-200 ${currentFolderId === null ? 'bg-gradient-to-r from-blue-400 to-blue-300 text-white border-blue-500 scale-[1.03]' : 'bg-white/80 border-blue-100 hover:scale-105'}`}
                             onClick={() => setCurrentFolderId(null)}
-                                    style={{
-                                        background: currentFolderId === null
-                                            ? 'linear-gradient(90deg, #4f8cff 0%, #a5b4fc 100%)'
-                                            : 'rgba(245,248,255,0.98)',
-                                        color: currentFolderId === null ? '#fff' : 'var(--accent-color)',
-                                        borderLeft: currentFolderId === null ? '6px solid #4f8cff' : '6px solid #e3e6ea',
-                                        fontWeight: 800,
-                                        display: 'flex', alignItems: 'center', minHeight: 56, borderRadius: 18, marginBottom: 8, boxShadow: currentFolderId === null ? '0 2px 16px #4f8cff22' : '0 1px 4px #0001',
-                                        padding: '0.7rem 1.2rem',
-                                        fontSize: '1.18rem',
-                                        letterSpacing: '-0.01em',
-                                        position: 'relative',
-                                        overflow: 'hidden',
-                                    }}
-                        >
-                                    <FolderIcon size={22} style={{marginRight: 12, color: currentFolderId === null ? '#fff' : '#4f8cff', opacity: 0.95}} />
-                                    <span style={{flex: 1}}>Other Notes</span>
-                                    <span style={{background: currentFolderId === null ? '#fff' : '#e11d48', color: currentFolderId === null ? '#4f8cff' : '#fff', borderRadius: 16, fontWeight: 900, fontSize: '1.05rem', padding: '0.18rem 1.1rem', marginLeft: 8, boxShadow: '0 2px 8px #0001', letterSpacing: '0.01em', minWidth: 32, textAlign: 'center', display: 'inline-block'}}>
-                                        N: {notes.filter(n => !n.folderId).length}
-                                    </span>
+                                >
+                                    <FolderIcon size={24} className={`mr-2 ${currentFolderId === null ? 'text-white' : 'text-blue-400'}`} />
+                                    <span className="flex-1 font-bold text-lg">Other Notes</span>
+                                    <span className={`rounded-full px-4 py-1 font-extrabold text-base shadow ${currentFolderId === null ? 'bg-white text-blue-500' : 'bg-pink-500 text-white'}`}>N: {notes.filter(n => !n.folderId).length}</span>
                         </div>
+                                {/* User Folders */}
                         {folders.map(folder => (
                             <div
                                 key={folder.id}
-                                className={`folder-card ${currentFolderId === folder.id ? 'active' : ''}`}
+                                        className={`group relative flex items-center gap-3 min-h-[60px] rounded-2xl px-5 py-3 cursor-pointer shadow-md border-2 transition-all duration-200 ${currentFolderId === folder.id ? 'bg-gradient-to-r from-white via-blue-200 to-blue-400 text-blue-900 border-blue-400 scale-[1.03]' : 'bg-white/80 border-blue-100 hover:scale-105'}`}
                                 onClick={() => setCurrentFolderId(folder.id)}
-                                        style={{
-                                            borderLeft: `6px solid ${folder.color}`,
-                                            background: currentFolderId === folder.id ? 'linear-gradient(90deg, ' + folder.color + ' 0%, #fff 100%)' : 'rgba(245,248,255,0.98)',
-                                            color: currentFolderId === folder.id ? '#fff' : folder.color,
-                                            fontWeight: 700,
-                                            display: 'flex', alignItems: 'center', minHeight: 56, borderRadius: 18, marginBottom: 8, boxShadow: currentFolderId === folder.id ? '0 2px 16px ' + folder.color + '22' : '0 1px 4px #0001',
-                                            padding: '0.7rem 1.2rem',
-                                            fontSize: '1.13rem',
-                                            letterSpacing: '-0.01em',
-                                            position: 'relative',
-                                            overflow: 'hidden',
-                                        }}
-                            >
-                                        <FolderIcon size={20} style={{color: folder.color, marginRight: 10, opacity: 0.95}} />
-                                        <span style={{flex: 1}}>{folder.name}</span>
-                                        <span style={{background: '#e11d48', color: '#fff', borderRadius: 16, fontWeight: 900, fontSize: '1.05rem', padding: '0.18rem 1.1rem', marginLeft: 8, boxShadow: '0 2px 8px #0001', letterSpacing: '0.01em', minWidth: 1, textAlign: 'center', display: 'inline-block'}}>
-                                            {notes.filter(n => n.folderId === folder.id).length}
-                                        </span> 
+                                        style={{ borderLeft: `8px solid ${folder.color}` }}
+                                    >
+                                        <FolderIcon size={22} className="mr-2" style={{ color: folder.color }} />
+                                        <span className="flex-1 font-bold text-lg" style={{ color: folder.color }}>{folder.name}</span>
+                                        <span className="rounded-full px-4 py-1 font-extrabold text-base bg-pink-500 text-white shadow">{notes.filter(n => n.folderId === folder.id).length}</span>
                                 <button
-                                    className="folder-action-btn"
+                                            className="ml-2 bg-pink-100 hover:bg-pink-200 border border-pink-200 rounded-full p-2 flex items-center justify-center transition"
                                     title="Rename Folder"
                                     onClick={e => { e.stopPropagation(); handleRenameFolder(folder.id); }}
-                                            style={{marginLeft: 8, background: '#f3f4f6', border: 'none', borderRadius: 12, padding: 4, display: 'flex', alignItems: 'center', boxShadow: '0 1px 4px #0001'}}
                                         >
-                                            <Palette size={16} style={{color: folder.color}} />
+                                            <Palette size={16} style={{ color: folder.color }} />
                                         </button>
                                 <button
-                                    className="folder-action-btn danger"
+                                            className="ml-2 bg-pink-100 hover:bg-pink-200 border border-pink-200 rounded-full p-2 flex items-center justify-center transition"
                                     title="Delete Folder"
                                     onClick={e => { e.stopPropagation(); handleDeleteFolder(folder.id); }}
-                                            style={{marginLeft: 8, background: '#f3f4f6', border: 'none', borderRadius: 12, padding: 4, display: 'flex', alignItems: 'center', boxShadow: '0 1px 4px #0001'}}
                                         >
-                                            <Trash2 size={16} style={{color: '#e11d48'}} />
+                                            <Trash2 size={16} className="text-pink-500" />
                                         </button>
                             </div>
                         ))}
                     </div>
                         </SortableContext>
                     </DndContext>
-                    <div className="sidebar-header" style={{marginTop: '2rem'}}>
-                        <h2>Notes</h2>
-                        <button className="new-note-btn" onClick={handleNewNote}><Plus size={18} /> New Note</button>
+                    {/* Notes Header */}
+                    <div className="flex items-center justify-between mt-6 mb-1">
+                        <h2 className="text-2xl font-extrabold text-blue-700 flex items-center gap-2 tracking-tight"><Edit3 size={24} className="text-blue-400" />Notes</h2>
+                        <button onClick={handleNewNote} className="bg-gradient-to-r from-blue-500 to-blue-400 text-white font-bold rounded-full px-5 py-2 flex items-center gap-2 shadow-lg hover:scale-105 active:scale-95 transition-all"><Plus size={20}/> New Note</button>
                     </div>
-                    {/* Note filter buttons */}
-                    <div style={{ display: 'flex', gap: '0.7rem', marginBottom: '1.2rem', justifyContent: 'space-between' }}>
+                    {/* Note Filters */}
+                    <div className="flex flex-wrap gap-3 mb-3">
                         <button
-                            className={noteFilter === 'all' ? 'note-filter-btn active' : 'note-filter-btn'}
+                            className={`flex-1 min-w-[110px] flex items-center justify-center gap-2 px-4 py-2 rounded-full font-bold text-lg shadow transition-all duration-150 ${noteFilter === 'all' ? 'bg-blue-500 text-white scale-105' : 'bg-white/80 text-blue-500 border border-blue-200 hover:bg-blue-100 hover:scale-105'}`}
                             onClick={() => setNoteFilter('all')}
-                        >All</button>
+                        ><span>All</span></button>
                         <button
-                            className={noteFilter === 'locked' ? 'note-filter-btn active' : 'note-filter-btn'}
+                            className={`flex-1 min-w-[110px] flex items-center justify-center gap-2 px-4 py-2 rounded-full font-bold text-lg shadow transition-all duration-150 ${noteFilter === 'locked' ? 'bg-blue-500 text-white scale-105' : 'bg-white/80 text-blue-500 border border-blue-200 hover:bg-blue-100 hover:scale-105'}`}
                             onClick={() => setNoteFilter('locked')}
-                        >Locked Notes</button>
+                        ><Lock size={18}/> Locked</button>
                         <button
-                            className={noteFilter === 'unlocked' ? 'note-filter-btn active' : 'note-filter-btn'}
+                            className={`flex-1 min-w-[110px] flex items-center justify-center gap-2 px-4 py-2 rounded-full font-bold text-lg shadow transition-all duration-150 ${noteFilter === 'unlocked' ? 'bg-blue-500 text-white scale-105' : 'bg-white/80 text-blue-500 border border-blue-200 hover:bg-blue-100 hover:scale-105'}`}
                             onClick={() => setNoteFilter('unlocked')}
-                        >No Lock Notes</button>
+                        >No Lock</button>
+                        <button
+                            className={`flex-1 min-w-[110px] flex items-center justify-center gap-2 px-4 py-2 rounded-full font-bold text-lg shadow transition-all duration-150 ${noteFilter === 'favorite' ? 'bg-yellow-400 text-white scale-105' : 'bg-white/80 text-yellow-500 border border-yellow-200 hover:bg-yellow-100 hover:scale-105'}`}
+                            onClick={() => setNoteFilter('favorite')}
+                        ><Star size={18}/> Fav</button>
                     </div>
-                 
+                    {/* Notes List */}
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleNoteDragEnd}>
                         <SortableContext items={filteredNotes.filter(note => (currentFolderId === null ? !note.folderId : note.folderId === currentFolderId)).map(n => n.id)} strategy={verticalListSortingStrategy}>
-                            <div className="notes-list-cards">
+                            <div className="flex flex-col gap-3">
                             {filteredNotes
                                 .filter(note => (currentFolderId === null ? !note.folderId : note.folderId === currentFolderId))
-                                .filter(note =>
-                                    noteFilter === 'all' ? true :
-                                    noteFilter === 'locked' ? note.isLocked :
-                                    !note.isLocked
-                                )
                                 .map((note: Note, idx) => {
                                     const folder = folders.find(f => f.id === note.folderId);
                                     const borderColor = currentFolderId === null && folder ? folder.color : 'transparent';
-                                    // Get a plain text preview (first 80 chars or 1 line)
-                                    let preview = '';
-                                    if (note.content) {
-                                        const div = document.createElement('div');
-                                        div.innerHTML = note.content;
-                                        preview = div.textContent || div.innerText || '';
-                                        preview = preview.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
-                                        if (preview.length === 80) preview += '...';
-                                    }
                                     const isLocked = note.isLocked;
                                     return (
                                         <div
                                             key={note.id}
-                                            className={`note-card${isLocked ? ' locked' : ''} ${note.id === currentNoteId ? 'active' : ''}`}
+                                                className={`group flex items-center gap-3 min-h-[60px] rounded-2xl px-5 py-3 cursor-pointer shadow-md transition-all duration-200 ${note.id === currentNoteId ? 'bg-gradient-to-l from-blue-400 to-blue-200 text-white border-blue-500 scale-[1.03]' : 'bg-white/80 border-blue-100 hover:scale-105'}`}
                                             onClick={() => handleSelectNote(note)}
-                                            style={{ borderLeftColor: borderColor }}
+                                                style={{ borderLeft: `8px solid ${borderColor}` }}
                                             data-id={note.id}
                                         >
-                                            <span>{idx + 1}.</span>
-                                            <div className="note-card-content">
-                                                <h3>{isLocked && <Lock size={16} className="lock-animated" />} {note.title}</h3>
-                                                <div className="note-preview">{preview}</div>
-                                                <p>{new Date(note.updatedAt).toLocaleDateString()}</p>
+                                                <span className="font-extrabold text-2xl mr-2" style={{ color: note.id === currentNoteId ? '#fff' : '#3b82f6' }}>{idx + 1}.</span>
+                                                <div className="flex-1">
+                                                    <h3 className={`flex items-center gap-1 font-bold text-lg ${note.id === currentNoteId ? 'text-white' : 'text-blue-900'}`}>{isLocked && <Lock size={16} className="lock-animated" />} {note.title}</h3>
+                                                    <p className="text-xs text-gray-400">{new Date(note.updatedAt).toLocaleDateString()}</p>
                                             </div>
+                                                <button
+                                                    className={`ml-2 rounded-xl p-2 shadow transition-all duration-150 ${note.isFavorite ? 'bg-yellow-400' : 'bg-gray-900'} hover:scale-110`}
+                                                    onClick={e => { e.stopPropagation(); handleToggleFavorite(note.id); }}
+                                                    title={note.isFavorite ? 'Unfavorite' : 'Favorite'}
+                                                >
+                                                    <Star size={22} fill={note.isFavorite ? '#fff' : 'none'} stroke="#fff" />
+                                                </button>
                                         </div>
                                     );
                                 })}
                             </div>
                         </SortableContext>
                     </DndContext>
-                </div>
-                <main className="editor-main">
+                </aside>
+                {/* SIDEBAR END */}
+                <main className="editor-main flex-1 w-full min-w-0 bg-gradient-to-br from-white via-blue-50 to-blue-100 rounded-t-3xl lg:rounded-3xl shadow-2xl p-2 sm:p-4 md:p-6 xl:p-8 flex flex-col gap-6 animate-fadeIn overflow-x-auto">
                     {currentNote ? (
                         <>
-                            <header className="editor-header">
-                                <div className="editor-info">
-                                    <span className="last-modified">
-                                        Last modified: {new Date(currentNote.updatedAt).toLocaleString()}
-                                    </span>
-                                    <span className="word-count">Words: {wordCount}</span>
+                            {/* Header Info and Actions */}
+                            <div className="flex flex-wrap items-center justify-between gap-4 mb-2 px-2">
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-gray-400 text-sm font-semibold">Last modified: <span className="text-blue-500">{new Date(currentNote.updatedAt).toLocaleString()}</span></span>
+                                    <span className="text-gray-400 text-sm font-semibold">Words: <span className="text-blue-500">{wordCount}</span></span>
                                 </div>
-                                <div className="editor-actions">
+                                <div className="flex items-center gap-2 editor-actions">
                                     <button onClick={handleLockNote} className="action-btn" disabled={currentNote.isLocked && !isTemporarilyUnlocked}>
                                         <Lock size={14}/> Lock
                                     </button>
@@ -670,29 +688,34 @@ export default function Dashboard() {
                                     <button onClick={() => handleSaveNote(true)} className="action-btn"><Save size={14}/> Save</button>
                                     <button onClick={() => handleDeleteNote(currentNoteId!)} className="action-btn danger"><Trash2 size={14}/> Delete</button>
                                 </div>
-                            </header>
-                            <div className="editor-content">
+                                {/* Auto-save indicator */}
+                                <span className="text-xs font-bold px-3 py-1 rounded-full bg-gradient-to-r from-green-400 to-blue-400 text-white shadow animate-pulse">Saved</span>
+                            </div>
+                            {/* Title Input */}
                                 <input
                                     type="text"
-                                    className="note-title-input"
+                                className="w-full text-4xl font-extrabold bg-white/70 rounded-2xl px-6 py-4 shadow-lg border-2 border-blue-100 focus:border-blue-400 outline-none transition-all duration-200 mb-2 animate-popIn placeholder:italic placeholder:text-blue-200"
                                     placeholder="Note Title"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
                                     disabled={currentNote.isLocked && !isTemporarilyUnlocked}
+                                style={{ letterSpacing: '-0.01em' }}
                                 />
-                                {currentNote && (
-                                    <div className="note-tags-container ultra-tags">
+                            {/* Tags */}
+                            <div className="flex flex-wrap items-center gap-2 mb-2 animate-fadeIn">
                                         {(currentNote.tags || []).map(tag => (
-                                            <span className="note-tag ultra-tag" key={tag} style={{ background: tagColor(tag) }}>
-                                                <Tag size={15} style={{marginRight: 5, opacity: 0.8}} />
-                                                <span className="tag-label">{tag}</span>
-                                                <button className="remove-tag-btn" onClick={() => handleRemoveTag(tag)} title="Remove tag"><XCircle size={15}/></button>
+                                    <span key={tag} className="flex items-center gap-1 px-4 py-2 rounded-full font-semibold text-white shadow bg-gradient-to-r from-blue-400 to-blue-600 animate-popIn">
+                                        <Tag size={16} className="opacity-80" />
+                                        <span>{tag}</span>
+                                        <button onClick={() => handleRemoveTag(tag)} className="ml-1 bg-white/30 hover:bg-pink-500 hover:text-white rounded-full p-1 transition-all"><XCircle size={15}/></button>
                                             </span>
                                         ))}
-                                        <div className="tag-input-wrapper">
-                                            <Tag size={16} style={{marginRight: 4, opacity: 0.7}} />
+                                {/* Tag input */}
+                                <div className="relative">
+                                    <div className="flex items-center gap-2 bg-white/70 border-2 border-blue-100 rounded-full px-4 py-2 shadow-inner">
+                                        <Tag size={16} className="opacity-70" />
                                             <input
-                                                className={`tag-input ultra-tag-input${tagError ? ' error' : ''}`}
+                                            className={`bg-transparent outline-none text-blue-700 font-semibold w-28 placeholder:text-blue-300 ${tagError ? 'text-pink-500' : ''}`}
                                                 type="text"
                                                 placeholder="Add tag..."
                                                 value={tagInput}
@@ -719,37 +742,54 @@ export default function Dashboard() {
                                                 onFocus={() => { updateTagSuggestions(tagInput); setShowSuggestions(true); }}
                                                 onBlur={() => setTimeout(() => setShowSuggestions(false), 120)}
                                             />
-                                            <button className="add-tag-btn" onClick={handleAddTag} title="Add tag"><CheckCircle size={16}/></button>
-                                            {tagError && <span className="tag-error">{tagError}</span>}
+                                        <button className="ml-1 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 transition-all" onClick={handleAddTag} title="Add tag"><CheckCircle size={16}/></button>
+                                    </div>
+                                    {/* Tag suggestions dropdown */}
                                             {showSuggestions && tagSuggestions.length > 0 && (
-                                                <div className="tag-suggestions-dropdown">
+                                        <div className="absolute left-0 mt-2 z-20 bg-white rounded-xl shadow-lg border border-blue-100 w-48 animate-popIn">
                                                     {tagSuggestions.map((sugg, idx) => (
                                                         <div
                                                             key={sugg}
-                                                            className={`tag-suggestion${selectedSuggestion === idx ? ' selected' : ''}`}
+                                                    className={`flex items-center gap-2 px-4 py-2 cursor-pointer rounded-xl transition-all ${selectedSuggestion === idx ? 'bg-blue-100 text-blue-700' : 'hover:bg-blue-50'}`}
                                                             onMouseDown={() => { setTagInput(sugg); setShowSuggestions(false); setTimeout(handleAddTag, 0); }}
-                                                            style={{ background: tagColor(sugg) }}
                                                         >
-                                                            <Tag size={13} style={{marginRight: 4, opacity: 0.7}} /> {sugg}
+                                                    <Tag size={13} className="opacity-70" /> {sugg}
                                                         </div>
                                                     ))}
                                                 </div>
                                             )}
+                                    {tagError && <span className="absolute left-0 mt-2 text-pink-500 text-xs animate-fadeIn">{tagError}</span>}
                                         </div>
+                            </div>
+                            {/* Toolbar */}
+                            {canEdit && editor && (
+                                <div className="flex items-center gap-3 bg-white/70 border-2 border-blue-100 rounded-2xl px-6 py-3 shadow-lg mb-2 animate-popIn sticky top-0 z-20">
+                                    <button onClick={() => editor.chain().focus().toggleBold().run()} className={`text-xl p-2 rounded-full transition-all ${editor.isActive('bold') ? 'bg-blue-500 text-white scale-110' : 'hover:bg-blue-700 text-white'}`} title="Bold (Ctrl+B)"><Bold size={20}/></button>
+                                    <button onClick={() => editor.chain().focus().toggleItalic().run()} className={`text-xl p-2 rounded-full transition-all ${editor.isActive('italic') ? 'bg-blue-500 text-white scale-110' : 'hover:bg-blue-700 text-white'}`} title="Italic (Ctrl+I)"><Italic size={20}/></button>
+                                    <button onClick={() => editor.chain().focus().toggleUnderline().run()} className={`text-xl p-2 rounded-full transition-all ${editor.isActive('underline') ? 'bg-blue-500 text-white scale-110' : 'hover:bg-blue-700 text-white'}`} title="Underline (Ctrl+U)"><Underline size={20}/></button>
+                                    <button onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className={`text-xl p-2 rounded-full transition-all ${editor.isActive('heading', { level: 1 }) ? 'bg-blue-500 text-white scale-110' : 'hover:bg-blue-700 text-white'}`} title="Heading (Ctrl+H)"><Heading size={20}/></button>
+                                    <button onClick={() => editor.chain().focus().toggleHighlight().run()} className={`text-xl p-2 rounded-full transition-all ${editor.isActive('highlight') ? 'bg-blue-500 text-white scale-110' : 'hover:bg-blue-700 text-white'}`} title="Highlight"><PaintBucket size={20}/></button>
+                                    <input type="color" onChange={e => editor.chain().focus().setColor(e.target.value).run()} title="Text color" className="w-8 h-8 rounded-full border-2 border-blue-200 cursor-pointer ml-2" />
+                                    {/* Markdown preview toggle */}
+                                    <button className="ml-auto px-4 py-2 rounded-full bg-gradient-to-r from-blue-400 to-blue-500 text-white font-bold shadow hover:scale-105 transition-all" onClick={() => setShowMarkdown(prev => !prev)}>{showMarkdown ? 'Editor' : 'Preview'}</button>
                                     </div>
                                 )}
-                                {/* Rich Text Editor Toolbar */}
-                                {canEdit && editor && (
-                                    <div className="tiptap-toolbar">
-                                        <button onClick={() => editor.chain().focus().toggleBold().run()} className={editor.isActive('bold') ? 'active' : ''}><Bold size={16}/></button>
-                                        <button onClick={() => editor.chain().focus().toggleItalic().run()} className={editor.isActive('italic') ? 'active' : ''}><Italic size={16}/></button>
-                                        <button onClick={() => editor.chain().focus().toggleUnderline().run()} className={editor.isActive('underline') ? 'active' : ''}><Underline size={16}/></button>
-                                        <button onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className={editor.isActive('heading', { level: 1 }) ? 'active' : ''}><Heading size={16}/></button>
-                                        <button onClick={() => editor.chain().focus().toggleHighlight().run()} className={editor.isActive('highlight') ? 'active' : ''}><PaintBucket size={16}/></button>
-                                        <input type="color" onChange={e => editor.chain().focus().setColor(e.target.value).run()} title="Text color" />
+                            {/* Editor Area */}
+                            <div className="relative flex-1 flex flex-col animate-fadeIn">
+                                {/* Markdown Preview */}
+                                {showMarkdown ? (
+                                    <div className="w-full min-h-[300px] bg-white/80 border-2 border-blue-100 rounded-2xl p-6 shadow-inner text-lg font-mono text-blue-900 overflow-auto animate-popIn prose max-w-none">
+                                        {/* Use a markdown parser if available, else fallback to raw HTML */}
+                                        <div dangerouslySetInnerHTML={{ __html: editor ? editor.getHTML() : '' }} />
                                     </div>
+                                ) : (
+                                    <EditorContent editor={editor} className="tiptap-editor w-full min-h-[300px] flex-1 bg-white/80 border-2 border-blue-100 rounded-2xl p-6 shadow-inner text-lg text-blue-900 outline-none focus:ring-4 focus:ring-blue-200 transition-all duration-200 animate-popIn" />
                                 )}
-                                <EditorContent editor={editor} className="tiptap-editor" />
+                                {/* Word/char counter */}
+                                <div className="flex items-center justify-end gap-4 mt-2 text-xs text-gray-400 font-semibold animate-fadeIn">
+                                    <span>Words: {wordCount}</span>
+                                    <span>Chars: {editor ? editor.getText().length : 0}</span>
+                                </div>
                             </div>
                         </>
                     ) : (

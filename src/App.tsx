@@ -6,10 +6,12 @@ import Profile from './pages/Profile';
 import { SignedIn, SignedOut, SignIn, SignUp } from '@clerk/clerk-react';
 import RedirectToSignIn from './components/RedirectToSignIn';
 import { Toaster } from 'react-hot-toast';
+import ConnectionStatusOverlay from './components/ConnectionStatusOverlay';
 
 export default function App() {
   return (
     <>
+      <ConnectionStatusOverlay />
       <Toaster 
         position="bottom-center"
         toastOptions={{
