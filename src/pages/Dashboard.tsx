@@ -158,7 +158,6 @@ export default function Dashboard() {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [selectedSuggestion, setSelectedSuggestion] = useState<number>(-1);
     const [tagError, setTagError] = useState<string | null>(null);
-    const [tagFilter, setTagFilter] = useState<string | null>(null);
     const [noteFilter, setNoteFilter] = useState<'all' | 'locked' | 'unlocked'>('all');
     const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
 
@@ -420,54 +419,6 @@ export default function Dashboard() {
             n.id === currentNoteId ? { ...n, tags: (n.tags || []).filter(t => t !== tagToRemove), updatedAt: new Date().toISOString() } : n
         );
         saveDataToClerk(updatedNotes, folders);
-    };
-
-    // Rename tag everywhere
-    const handleRenameTag = (oldTag: string, newTag: string) => {
-        if (!newTag.trim() || oldTag === newTag) return;
-        const updatedNotes = notes.map(n =>
-            n.tags && n.tags.includes(oldTag)
-                ? { ...n, tags: n.tags.map(t => t === oldTag ? newTag : t), updatedAt: new Date().toISOString() }
-                : n
-        );
-        saveDataToClerk(updatedNotes, folders);
-    };
-
-    // Delete tag everywhere
-    const handleDeleteTagEverywhere = (tagToDelete: string) => {
-        const updatedNotes = notes.map(n =>
-            n.tags && n.tags.includes(tagToDelete)
-                ? { ...n, tags: n.tags.filter(t => t !== tagToDelete), updatedAt: new Date().toISOString() }
-                : n
-        );
-        saveDataToClerk(updatedNotes, folders);
-    };
-
-    // Tag input handlers
-    const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setTagInput(e.target.value);
-        setTagError(null);
-        updateTagSuggestions(e.target.value);
-        setShowSuggestions(true);
-        setSelectedSuggestion(-1);
-    };
-    const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            if (showSuggestions && selectedSuggestion >= 0 && tagSuggestions[selectedSuggestion]) {
-                setTagInput(tagSuggestions[selectedSuggestion]);
-                setShowSuggestions(false);
-                setSelectedSuggestion(-1);
-                setTimeout(handleAddTag, 0);
-            } else {
-                handleAddTag();
-            }
-        } else if (e.key === 'ArrowDown') {
-            setSelectedSuggestion(s => Math.min(s + 1, tagSuggestions.length - 1));
-        } else if (e.key === 'ArrowUp') {
-            setSelectedSuggestion(s => Math.max(s - 1, 0));
-        } else if (e.key === 'Escape') {
-            setShowSuggestions(false);
-        }
     };
 
     // Search notes by title
@@ -745,8 +696,25 @@ export default function Dashboard() {
                                                 type="text"
                                                 placeholder="Add tag..."
                                                 value={tagInput}
-                                                onChange={handleTagInputChange}
-                                                onKeyDown={handleTagInputKeyDown}
+                                                onChange={e => { setTagInput(e.target.value); setTagError(null); updateTagSuggestions(e.target.value); setShowSuggestions(true); setSelectedSuggestion(-1); }}
+                                                onKeyDown={e => {
+                                                    if (e.key === 'Enter') {
+                                                        if (showSuggestions && selectedSuggestion >= 0 && tagSuggestions[selectedSuggestion]) {
+                                                            setTagInput(tagSuggestions[selectedSuggestion]);
+                                                            setShowSuggestions(false);
+                                                            setSelectedSuggestion(-1);
+                                                            setTimeout(handleAddTag, 0);
+                                                        } else {
+                                                            handleAddTag();
+                                                        }
+                                                    } else if (e.key === 'ArrowDown') {
+                                                        setSelectedSuggestion(s => Math.min(s + 1, tagSuggestions.length - 1));
+                                                    } else if (e.key === 'ArrowUp') {
+                                                        setSelectedSuggestion(s => Math.max(s - 1, 0));
+                                                    } else if (e.key === 'Escape') {
+                                                        setShowSuggestions(false);
+                                                    }
+                                                }}
                                                 maxLength={24}
                                                 onFocus={() => { updateTagSuggestions(tagInput); setShowSuggestions(true); }}
                                                 onBlur={() => setTimeout(() => setShowSuggestions(false), 120)}

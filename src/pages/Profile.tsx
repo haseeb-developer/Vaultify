@@ -1,22 +1,9 @@
 import { UserProfile, useUser, useClerk } from '@clerk/clerk-react';
 import { useTheme } from '../contexts/ThemeProvider';
 import { useState } from 'react';
-import { Moon, Sun, Calendar, KeyRound, LogIn, Smartphone, ShieldCheck, Clock, RefreshCcw, Edit3, MailCheck, UserCheck, LogOut, Eye, EyeOff, X, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Moon, Sun, Calendar, KeyRound, LogIn, Smartphone, ShieldCheck, Edit3, MailCheck, UserCheck, LogOut, Eye, X, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import './Profile.css';
-
-interface Folder {
-  id: string;
-  name: string;
-  parentId?: string; // for nested folders/groups
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface Note {
-  // ...existing fields...
-  folderId?: string; // reference to the folder/group
-}
 
 // Modal Components
 const ConfirmationModal = ({ 
@@ -72,7 +59,7 @@ const ConfirmationModal = ({
 
 export default function Profile() {
   const { user } = useUser();
-  const { signOut, client } = useClerk();
+  const { signOut } = useClerk();
   const { theme, setTheme } = useTheme();
   const notes = user?.unsafeMetadata.notes as any[] || [];
 
@@ -178,29 +165,6 @@ export default function Profile() {
       toast.error('Failed to sign out');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleViewSessions = async () => {
-    setIsLoading(true);
-    try {
-      // Clerk doesn't provide client-side session management API
-      // This would require backend implementation with Clerk's server-side API
-      toast.success('Session management is available in your Clerk dashboard');
-      toast.success('For real-time session management, you would need to implement a backend API that uses Clerk\'s server-side session endpoints');
-    } catch (error) {
-      toast.error('Failed to load session information');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleRevokeSession = async (sessionId: string) => {
-    try {
-      // This would require backend implementation
-      toast.success('Session revocation would be implemented via backend API');
-    } catch (error) {
-      toast.error('Failed to revoke session');
     }
   };
 
