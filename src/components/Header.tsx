@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, useUser } from '@clerk/clerk-react';
-import { Sun, Moon, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 // import { useTheme } from '../contexts/ThemeProvider';
 
 export default function Header() {
@@ -56,7 +56,9 @@ export default function Header() {
         </SignedOut>
         <SignedIn>
           {isSignedIn && (
-            <span className="hidden sm:inline-block font-bold text-blue-700 dark:text-blue-200 text-lg mr-2 animate-fadeIn">Hi, {user.firstName}</span>
+            <span className="hidden sm:inline-block font-bold text-blue-700 dark:text-blue-200 text-lg mr-2 animate-fadeIn">
+              Hi, {user.firstName || user.username || user.emailAddresses?.[0]?.emailAddress || user.phoneNumbers?.[0]?.phoneNumber}
+            </span>
           )}
           <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: 'ring-2 ring-blue-400 ring-offset-2 ring-offset-white dark:ring-offset-slate-900 transition-all duration-200' } }} />
         </SignedIn>
