@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import * as CryptoJS from 'crypto-js';
 import toast from 'react-hot-toast';
-import { Plus, Lock, Trash2, Save, ShieldOff, Search, Bold, Italic, Underline, Heading, PaintBucket, X, Folder as FolderIcon, Palette, Tag, Edit3, XCircle, CheckCircle } from 'lucide-react';
+import { Plus, Lock, Trash2, Save, ShieldOff, Search, Bold, Italic, Underline, Heading, PaintBucket, X, Folder as FolderIcon, Palette, Tag, XCircle, CheckCircle } from 'lucide-react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import BoldExt from '@tiptap/extension-bold';
