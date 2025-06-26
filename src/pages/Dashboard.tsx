@@ -1186,7 +1186,6 @@ export default function Dashboard() {
                             {filteredNotes
                                 .map((note: Note, idx) => {
                                     const folder = folders.find(f => f.id === note.folderId);
-                                    const borderColor = currentFolderId === null && folder ? folder.color : 'transparent';
                                     const isLocked = note.isLocked;
                                     return (
                                         <div
