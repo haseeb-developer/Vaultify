@@ -1185,7 +1185,6 @@ export default function Dashboard() {
                             <div className="flex flex-col gap-3">
                             {filteredNotes
                                 .map((note: Note, idx) => {
-                                    const folder = folders.find(f => f.id === note.folderId);
                                     const isLocked = note.isLocked;
                                     return (
                                         <div
