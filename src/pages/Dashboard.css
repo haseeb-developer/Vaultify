@@ -78,8 +78,6 @@ body, .app-container, .notes-dashboard-container {
     padding: 0 20px;
 }
 
-
-
 /* Sidebar */
 .dashboard-sidebar {
     width: 340px;
@@ -1551,4 +1549,27 @@ body, .app-container, .notes-dashboard-container {
   background: linear-gradient(90deg, #2563eb 80%, #a5b4fc 100%);
   transform: scale(1.05);
   box-shadow: 0 4px 24px #4f8cff33;
+}
+
+/* --- Filter and Sort Dropdown Flex Styles --- */
+.filter-sort-row {
+  gap: 0.5rem;
+  width: 100%;
+}
+.filter-sort-row > .custom-dropdown {
+  flex: 1 1 0%;
+  min-width: 0;
+  max-width: 100%;
+}
+@media (max-width: 600px) {
+  .filter-sort-row {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .filter-sort-row > .custom-dropdown {
+    flex: 1 1 100%;
+    min-width: 0;
+    width: 100%;
+    margin-left: 0 !important;
+  }
 }

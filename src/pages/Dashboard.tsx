@@ -48,10 +48,10 @@ const UnlockNoteModal = ({ note, onUnlock, onCancel, error, loading }: {
   error?: string;
   loading?: boolean;
 }) => {
-  const [password, setPassword] = useState('');
+    const [password, setPassword] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
+    useEffect(() => {
     setPassword('');
     setLocalError(null);
     setTimeout(() => inputRef.current?.focus(), 100);
@@ -74,7 +74,7 @@ const UnlockNoteModal = ({ note, onUnlock, onCancel, error, loading }: {
     </span>
   );
 
-  return (
+    return (
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
@@ -150,17 +150,17 @@ const UnlockNoteModal = ({ note, onUnlock, onCancel, error, loading }: {
             </div>
           )}
           <div style={{ marginBottom: 18 }}>
-            <input
+                <input
               ref={inputRef}    
-              type="password"
-              value={password}
+                    type="password"
+                    value={password}
               onChange={e => { setPassword(e.target.value); setLocalError(null); }}
               onPaste={handlePaste}
               maxLength={64}
               className="w-full border-2 border-blue-400 focus:border-blue-500 outline-none py-4 px-5 mb-2 text-xl rounded-2xl bg-[#23272a] text-blue-100 placeholder:text-blue-400 transition-all duration-200 font-semibold shadow-inner"
-              placeholder="Password"
+                    placeholder="Password"
               disabled={loading}
-              autoFocus
+                    autoFocus
               style={{
                 letterSpacing: '0.04em',
                 fontSize: 22,
@@ -173,7 +173,7 @@ const UnlockNoteModal = ({ note, onUnlock, onCancel, error, loading }: {
                 fontWeight: 700,
               }}
             />
-          </div>
+                </div>
           {(error || localError) && (
             <div className="mb-4 text-pink-500 text-lg font-bold animate-fadeIn" style={{ minHeight: 12 }}>{error || localError}</div>
           )}
@@ -203,29 +203,29 @@ const UnlockNoteModal = ({ note, onUnlock, onCancel, error, loading }: {
             >
               {loading ? 'Unlocking...' : 'Unlock'}
             </button>
-          </div>
+            </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>
-  );
+    );
 };
 
 const SetPasswordModal = ({ onSetPassword, onCancel }: { onSetPassword: (password: string, hint: string) => void; onCancel: () => void; }) => {
-  const [password, setPassword] = useState('');
-  const [hint, setHint] = useState('');
-  const [touched, setTouched] = useState(false);
+    const [password, setPassword] = useState('');
+    const [hint, setHint] = useState('');
+    const [touched, setTouched] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
-  const minLength = 5;
-  const hasSpecial = /[^A-Za-z0-9]/.test(password);
-  const tooShort = password.length > 0 && password.length < minLength;
+    const minLength = 5;
+    const hasSpecial = /[^A-Za-z0-9]/.test(password);
+    const tooShort = password.length > 0 && password.length < minLength;
   const inputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
+    useEffect(() => {
     setPassword('');
     setHint('');
     setTouched(false);
     setLocalError(null);
     setTimeout(() => inputRef.current?.focus(), 100);
-  }, []);
+    }, []);
 
   // Animated lock icon
   const LockAnimated = () => (
@@ -238,7 +238,7 @@ const SetPasswordModal = ({ onSetPassword, onCancel }: { onSetPassword: (passwor
     </span>
   );
 
-  return (
+    return (
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
@@ -295,15 +295,15 @@ const SetPasswordModal = ({ onSetPassword, onCancel }: { onSetPassword: (passwor
             Secure your note with a password. You can also add an optional hint.
           </p>
           <div style={{ marginBottom: 8 }}>    
-            <input
+                <input
               ref={inputRef}
-              type="password"
-              value={password}
+                    type="password"
+                    value={password}
               onChange={e => { setPassword(e.target.value); setTouched(true); setLocalError(null); }}
               maxLength={64}
               className="w-full border-2 border-blue-400 focus:border-blue-500 outline-none py-4 px-5 mb-2 text-xl rounded-2xl bg-[#23272a] text-blue-100 placeholder:text-blue-400 transition-all duration-200 font-semibold shadow-inner"
-              placeholder="Enter new password"
-              autoFocus
+                    placeholder="Enter new password"
+                    autoFocus
               style={{
                 letterSpacing: '0.04em',
                 fontSize: 22,
@@ -339,21 +339,21 @@ const SetPasswordModal = ({ onSetPassword, onCancel }: { onSetPassword: (passwor
             />
           </div>
 
-                      {/* Password validation feedback */}
+                {/* Password validation feedback */}
             <div style={{ minHeight: 32, marginBottom: 28, marginTop: 0 }}>
-              {touched && password.length > 0 && (
-                <>
+                  {touched && password.length > 0 && (
+                    <>
                   {tooShort && <span style={{ color: '#ff4f4f', fontWeight: 600, fontSize: 16 }}>Password must be at least {minLength} characters.</span>}
                   {!tooShort && <span style={{ color: '#22d3ee', fontWeight: 600, fontSize: 16 }}>Password length is good.</span>}
-                  <br />
-                  {hasSpecial ? (
+                      <br />
+                      {hasSpecial ? (
                     <span style={{ color: '#22d3ee', fontWeight: 600, fontSize: 15 }}>Contains special character ✓</span>
-                  ) : (
+                      ) : (
                     <span style={{ color: '#bfcfff', fontWeight: 500, fontSize: 15 }}>Add a special character for better security.</span>
+                      )}
+                    </>
                   )}
-                </>
-              )}
-            </div>
+                </div>
           {localError && (
             <div className="mb-1 text-pink-500 text-lg font-bold animate-fadeIn" style={{ minHeight: 1 }}>{localError}</div>
           )}
@@ -388,25 +388,25 @@ const SetPasswordModal = ({ onSetPassword, onCancel }: { onSetPassword: (passwor
             >
               Set Password & Lock
             </button>
-          </div>
+                </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>
-  );
+    );
 };
 
 // FolderModal: add same modal enhancements
 const CreateFolderModal = ({ onCreate, onCancel, existingFolders }: { onCreate: (name: string, color: string) => void; onCancel: () => void; existingFolders: Folder[] }) => {
-  const [name, setName] = useState('');
-  const [color, setColor] = useState('#4f8cff');
+    const [name, setName] = useState('');
+    const [color, setColor] = useState('#4f8cff');
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
+    useEffect(() => {
     setName('');
     setColor('#4f8cff');
     setError(null);
     setTimeout(() => inputRef.current?.focus(), 100);
-  }, []);
+    }, []);
 
   // Animated folder icon
   const FolderAnimated = () => (
@@ -431,7 +431,7 @@ const CreateFolderModal = ({ onCreate, onCancel, existingFolders }: { onCreate: 
     onCreate(name.trim(), color);
   };
 
-  return (
+    return (
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
@@ -488,15 +488,15 @@ const CreateFolderModal = ({ onCreate, onCancel, existingFolders }: { onCreate: 
             Organize your notes by creating a new folder.
           </p>
           <div style={{ marginBottom: 18 }}>
-            <input
+                <input
               ref={inputRef}
-              type="text"
-              value={name}
+                    type="text"
+                    value={name}
               onChange={e => { setName(e.target.value); setError(null); }}
               maxLength={32}
               className="w-full border-2 border-blue-400 focus:border-blue-500 outline-none py-4 px-5 mb-2 text-xl rounded-2xl bg-[#23272a] text-blue-100 placeholder:text-blue-400 transition-all duration-200 font-semibold shadow-inner"
-              placeholder="Folder name"
-              autoFocus
+                    placeholder="Folder name"
+                    autoFocus
               style={{
                 letterSpacing: '0.04em',
                 fontSize: 22,
@@ -512,16 +512,16 @@ const CreateFolderModal = ({ onCreate, onCancel, existingFolders }: { onCreate: 
           </div>
           <div className="flex items-center justify-center gap-4 mb-6">
             <Palette size={22} style={{ color, opacity: 0.8 }} />
-            <input
-              type="color"
-              value={color}
-              onChange={e => setColor(e.target.value)}
+                    <input
+                        type="color"
+                        value={color}
+                        onChange={e => setColor(e.target.value)}
               className="w-12 h-12 rounded-full border-2 border-blue-200 shadow cursor-pointer"
-              title="Pick folder color"
+                        title="Pick folder color"
               style={{ boxShadow: `0 2px 12px ${color}44`, borderColor: color }}
-            />
+                    />
             <span className="text-base text-blue-200 font-semibold">Choose color</span>
-          </div>
+                </div>
           {error && (
             <div className="mb-4 text-pink-500 text-lg font-bold animate-fadeIn" style={{ minHeight: 12 }}>{error}</div>
           )}
@@ -557,10 +557,10 @@ const CustomAlertModal = ({ message, onClose }: { message: string; onClose: () =
       <p className="mb-6 text-lg text-gray-700 text-center">{message}</p>
       <div className="flex justify-center">
         <button onClick={onClose} className="px-6 py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all duration-200">OK</button>
-      </div>
-    </div>
-  </div>
-);
+                </div>
+            </div>
+        </div>
+    );
 
 export default function Dashboard() {
     const { user } = useUser();
@@ -597,6 +597,9 @@ export default function Dashboard() {
     const didLoadRef = useRef(false);
     const [unlockError, setUnlockError] = useState<string | null>(null);
     const [unlockLoading, setUnlockLoading] = useState(false);
+    const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
+    // Add state for sort dropdown visibility
+    const [showSortDropdown, setShowSortDropdown] = useState(false);
 
     const currentNote = notes.find(note => note.id === currentNoteId);
     const isTemporarilyUnlocked = currentNote?.isLocked && tempUnlockedContent !== null;
@@ -886,12 +889,20 @@ export default function Dashboard() {
         await saveDataToClerk(updatedNotes, folders);
     };
 
-    // Search notes by title
-    const filteredNotes: Note[] = notes.filter(note => {
+    // Search notes by title and apply filter
+    let filteredNotes: Note[] = notes.filter(note => {
         if (noteFilter === 'favorite') return note.isFavorite;
         if (noteFilter === 'locked') return note.isLocked;
         if (noteFilter === 'unlocked') return !note.isLocked;
         return note.title.toLowerCase().includes(search.toLowerCase());
+    });
+    // Apply sort order
+    filteredNotes = filteredNotes.sort((a, b) => {
+        if (sortOrder === 'latest') {
+            return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        } else {
+            return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+        }
     });
 
     // Folder creation logic (now uses modal)
@@ -1044,41 +1055,37 @@ export default function Dashboard() {
                             <div className="flex flex-col gap-3">
                                 {/* Other Notes */}
                         <div
-                                    className={`group relative flex items-center gap-3 min-h-[60px] rounded-2xl px-5 py-3 cursor-pointer shadow-md border-2 transition-all duration-200 ${currentFolderId === null ? 'bg-gradient-to-r from-blue-400 to-blue-300 text-white border-blue-500 scale-[1.03]' : 'bg-white/80 border-blue-100 hover:scale-105'}`}
+                                    className={`group relative flex items-center gap-3 min-h-[60px] rounded-2xl px-5 py-3 cursor-pointer shadow-md border-2 transition-all duration-200 ${currentFolderId === null ? 'bg-gradient-to-r from-blue-900 to-blue-300 text-white border-blue-500 scale-[1.03]' : 'bg-white/80 border-blue-100 hover:scale-105 sidebar-folder'}`}
                             onClick={() => setCurrentFolderId(null)}
                                 >
                                     <FolderIcon size={24} className={`mr-2 ${currentFolderId === null ? 'text-white' : 'text-blue-400'}`} />
-                                    <span className="flex-1 font-bold text-lg">Other Notes</span>
-                                    <span className={`rounded-full px-4 py-1 font-extrabold text-base shadow ${currentFolderId === null ? 'bg-white text-blue-500' : 'bg-pink-500 text-white'}`}>N: {notes.filter(n => !n.folderId).length}</span>
+                                    <span className="flex-1 font-500 text-lg">Other Notes</span>
+                                    <span className={`rounded-full px-4 py-1 font-600 text-base shadow ${currentFolderId === null ? 'bg-white text-blue-500' : 'bg-pink-500 text-white'}`}>N: {notes.filter(n => !n.folderId).length}</span>  
                         </div>
                                 {/* User Folders */}
                         {folders.map(folder => (
                             <div
                                 key={folder.id}
-                                        className={`group relative flex items-center gap-3 min-h-[60px] rounded-2xl px-5 py-3 cursor-pointer shadow-md border-2 transition-all duration-200 ${currentFolderId === folder.id ? 'bg-gradient-to-r from-white via-blue-200 to-blue-400 text-blue-900 border-blue-400 scale-[1.03]' : 'bg-white/80 border-blue-100 hover:scale-105 sidebar-folder'}`}
+                                        className={`group relative flex items-center gap-3 min-h-[60px] rounded-2xl px-5 py-3 cursor-pointer shadow-md border-2 transition-all duration-200 ${currentFolderId === folder.id ? 'bg-gradient-to-r from-[#3b9ac4] to-blue-900 text-blue-900 border-blue-900 scale-[1.02]' : 'bg-white/80 border-blue-100 hover:scale-105 sidebar-folder'}`}
                                 onClick={() => setCurrentFolderId(folder.id)}
                                         style={{ borderLeft: `8px solid ${folder.color}` }}
                                     >
                                         <span onClick={() => toggleFolder(folder.id)} style={{ cursor: 'pointer', marginRight: 8 }}>
                                             {folderOpen[folder.id] ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                                         </span>
-                                        <FolderIcon size={22} className="mr-2" style={{ color: folder.color }} />
-                                        <span className="flex-1 font-bold text-lg" style={{ color: folder.color }}>{folder.name}</span>
-                                        <span className="rounded-full px-4 py-1 font-extrabold text-base bg-pink-500 text-white shadow">{notes.filter(n => n.folderId === folder.id).length}</span>
-                                <button
-                                            className="ml-2 sidebar-folder border border-pink-200 rounded-full p-2 flex items-center justify-center transition "
-                                    title="Rename Folder"
-                                    onClick={e => { e.stopPropagation(); handleRenameFolder(folder.id); }}
-                                        >
+                                        <FolderIcon size={22} style={{ color: folder.color }} />
+                                        <span className="flex-1 font-500 text-lg" style={{ color: folder.color }}>{folder.name}</span>
+                           <div className="flex  folder-side-icons">
+                                       <span className="rounded-full px-4 py-1 font-300 text-base bg-[transparent] border-2 border-gray-500 p-[0] w-[0] flex justify-center text-white shadow  h-fit p-0 m-0">{notes.filter(n => n.folderId === folder.id).length}</span>
+                                <button className="ml-2 sidebar-folder border border-pink-200 rounded-full p-2 flex items-center justify-center transition "
+                                    title="Rename Folder" onClick={e => { e.stopPropagation(); handleRenameFolder(folder.id); }}>
                                             <Palette size={16} style={{ color: folder.color }} />
-                                        </button>
-                                <button
-                                            className="ml-2 sidebar-folder border border-pink-200 rounded-full p-2 flex items-center justify-center transition"
-                                    title="Delete Folder"
-                                    onClick={e => { e.stopPropagation(); handleDeleteFolder(folder.id); }}
-                                        >
+                                 </button>
+                                <button className="ml-2 sidebar-folder border border-pink-200 rounded-full p-2 flex items-center justify-center transition"
+                                    title="Delete Folder" onClick={e => { e.stopPropagation(); handleDeleteFolder(folder.id); }}>
                                             <Trash2 size={16} className="text-pink-500" />
-                                        </button>
+                                </button>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -1096,61 +1103,87 @@ export default function Dashboard() {
                             {newNoteCountdown && newNoteBlockedUntil && Date.now() < newNoteBlockedUntil ? `New Note (${newNoteCountdown})` : 'New Note'}
                         </button>
                     </div>
-                    {/* Note Filters */}
-                    <div className="relative mb-3">
-                        <div
-                            className="custom-dropdown flex items-center justify-between px-4 py-2 rounded-full font-bold text-lg shadow cursor-pointer bg-[#23272a] border-2 border-blue-400 text-blue-400 hover:bg-[#36393f] transition-all duration-200 select-none min-w-[160px]"
+                    {/* Note Filters + Sort Dropdown */}
+                    <div className="filter-sort-row  mb-3 w-full">
+                        {/* Note Filter Dropdown */}
+                        <div className="custom-dropdown flex-1 min-w-0 flex items-center justify-between px-4 py-2 rounded-full font-400 text-lg shadow cursor-pointer bg-[#23272a] border-2 border-blue-400 text-blue-400 hover:bg-[#36393f] transition-all duration-200 select-none"
                             onClick={() => setShowDropdown(prev => !prev)}
                             tabIndex={0}
                             onBlur={() => setTimeout(() => setShowDropdown(false), 120)}
+                            style={{ flex: 1, minWidth: 0 }}
                         >
                             <span className="flex items-center gap-2">
-                                {noteFilter === 'all' && <><span className="dropdown-icon"><Edit3 size={16}/></span><span>All Notes</span></>}
-                                {noteFilter === 'locked' && <><span className="dropdown-icon"><Lock size={16}/></span><span>Locked</span></>}
-                                {noteFilter === 'unlocked' && <><span className="dropdown-icon"><ShieldOff size={16}/></span><span>No Lock</span></>}
-                                {noteFilter === 'favorite' && <><span className="dropdown-icon"><Star size={16}/></span><span>Fav</span></>}
+                                {noteFilter === 'all' && <><span className="dropdown-icon"><Edit3 size={16}/></span><span className='font-normal'>All Notes</span></>}
+                                {noteFilter === 'locked' && <><span className="dropdown-icon"><Lock size={16}/></span><span  className='font-normal'>Locked</span></>}
+                                {noteFilter === 'unlocked' && <><span className="dropdown-icon"><ShieldOff size={16}/></span><span  className='font-normal'>No Lock</span></>}
+                                {noteFilter === 'favorite' && <><span className="dropdown-icon"><Star size={16}/></span><span className='font-normal'>Fav</span></>}
                             </span>
                             <span className={`dropdown-arrow ml-auto transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`}><ChevronDown size={20} /></span>
                         </div>
                         {showDropdown && (
-                            <div className="absolute left-0 mt-2 z-30 w-full bg-[#23272a] border-2 border-blue-400 rounded-2xl shadow-xl animate-popIn overflow-hidden">
+                            <div className="mt-2 z-30 w-full bg-[#23272a] border-2 border-blue-400 rounded-2xl shadow-xl animate-popIn overflow-hidden">
                                 <div
-                                    className={`dropdown-item flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-blue-500 hover:text-white transition-all ${noteFilter === 'all' ? 'bg-blue-500 text-white' : 'text-blue-400'}`}
+                                    className={`dropdown-item flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-blue-500 hover:text-white transition-all  ${noteFilter === 'all' ? 'bg-blue-500 text-white' : 'text-blue-400'}`}
                                     onClick={() => { setNoteFilter('all'); setShowDropdown(false); }}
                                 >
                                     <span className="dropdown-icon" style={{width: 22}}><Edit3 size={16}/></span>
-                                    <span>All Notes</span>
+                                    <span className='font-normal'>All Notes</span>
                                 </div>
                                 <div
                                     className={`dropdown-item flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-blue-500 hover:text-white transition-all ${noteFilter === 'locked' ? 'bg-blue-500 text-white' : 'text-blue-400'}`}
                                     onClick={() => { setNoteFilter('locked'); setShowDropdown(false); }}
                                 >
                                     <span className="dropdown-icon" style={{width: 22}}><Lock size={16}/></span>
-                                    <span>Locked</span>
+                                    <span className='font-normal'>Locked</span>
                                 </div>
                                 <div
                                     className={`dropdown-item flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-blue-500 hover:text-white transition-all ${noteFilter === 'unlocked' ? 'bg-blue-500 text-white' : 'text-blue-400'}`}
                                     onClick={() => { setNoteFilter('unlocked'); setShowDropdown(false); }}
                                 >
                                     <span className="dropdown-icon" style={{width: 22}}><ShieldOff size={16}/></span>
-                                    <span>No Lock</span>
+                                    <span className='font-normal'>No Lock</span>
                                 </div>
                                 <div
                                     className={`dropdown-item flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-yellow-400 hover:text-white transition-all ${noteFilter === 'favorite' ? 'bg-yellow-400 text-white' : 'text-yellow-500'}`}
                                     onClick={() => { setNoteFilter('favorite'); setShowDropdown(false); }}
                                 >
                                     <span className="dropdown-icon" style={{width: 22}}><Star size={16}/></span>
-                                    <span>Fav</span>
+                                    <span className='font-normal'>Fav</span>
                                 </div>
                             </div>
                         )}
+                        {/* Sort Dropdown */}
+                        <div className="custom-dropdown flex-1 min-w-0 flex items-center justify-between px-4 py-2 rounded-full font-400 text-lg shadow cursor-pointer bg-[#23272a] border-2 border-blue-400 text-blue-400 hover:bg-[#36393f] transition-all duration-200 select-none mt-2 relative"
+                            tabIndex={0}
+                            style={{ flex: 1, minWidth: 0 }}
+                            onClick={() => setShowSortDropdown(prev => !prev)}
+                            onBlur={() => setTimeout(() => setShowSortDropdown(false), 120)}
+                        >
+                            <span className='font-normal'>{sortOrder === 'latest' ? 'Latest Notes' : 'Old notes'}</span>
+                            <span className={`dropdown-arrow ml-auto transition-transform duration-200 ${showSortDropdown ? 'rotate-180' : ''}`}><ChevronDown size={20} /></span>
+                            {showSortDropdown && (
+                                <div className="flex flex-col absolute left-0 top-full mt-2 z-40 w-full bg-[#23272a] border-2 border-blue-400 rounded-2xl shadow-xl animate-popIn overflow-hidden">
+                                    <div
+                                        className={`dropdown-item flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-blue-500 hover:text-white transition-all ${sortOrder === 'latest' ? 'bg-blue-500 text-white' : 'text-blue-400'}`}
+                                        onClick={e => { e.stopPropagation(); setSortOrder('latest'); setShowSortDropdown(false); }}
+                                    >
+                                        <span className='font-normal'>Latest Notes</span>
+                                    </div>
+                                    <div
+                                        className={`dropdown-item flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-blue-500 hover:text-white transition-all ${sortOrder === 'oldest' ? 'bg-blue-500 text-white' : 'text-blue-400'}`}
+                                        onClick={e => { e.stopPropagation(); setSortOrder('oldest'); setShowSortDropdown(false); }}
+                                    >
+                                        <span className='font-normal'>Old notes</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                     {/* Notes List */}
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleNoteDragEnd}>
-                        <SortableContext items={filteredNotes.filter(note => (currentFolderId === null ? !note.folderId : note.folderId === currentFolderId)).map(n => n.id)} strategy={verticalListSortingStrategy}>
+                        <SortableContext items={filteredNotes.map(n => n.id)} strategy={verticalListSortingStrategy}>
                             <div className="flex flex-col gap-3">
                             {filteredNotes
-                                .filter(note => (currentFolderId === null ? !note.folderId : note.folderId === currentFolderId))
                                 .map((note: Note, idx) => {
                                     const folder = folders.find(f => f.id === note.folderId);
                                     const borderColor = currentFolderId === null && folder ? folder.color : 'transparent';
@@ -1158,15 +1191,39 @@ export default function Dashboard() {
                                     return (
                                         <div
                                             key={note.id}
-                                                className={`group flex items-center gap-3 min-h-[60px] rounded-2xl px-5 py-3 cursor-pointer shadow-md transition-all duration-200 ${note.id === currentNoteId ? 'bg-gradient-to-l from-blue-400 to-blue-200 text-white border-blue-500 scale-[1.03]' : 'bg-white/80 border-blue-100 hover:scale-105'}`}
-                                            onClick={() => handleSelectNote(note)}
-                                                style={{ borderLeft: `8px solid ${borderColor}` }}
+                                                className={`group flex items-center gap-3 min-h-[60px] rounded-2xl px-5 py-3 cursor-pointer shadow-md transition-all duration-200 ${note.id === currentNoteId ? 'bg-gradient-to-r from-blue-900 to-blue-200 text-white border-blue-500 scale-[1.03]' : 'bg-[#2c2f33] border border-[#23272a] hover:scale-105'}`}
+                                            onClick={() => handleSelectNote(note)}  
                                             data-id={note.id}
                                         >
-                                                <span className="font-extrabold text-2xl mr-2" style={{ color: note.id === currentNoteId ? '#fff' : '#3b82f6' }}>{idx + 1}.</span>
+                                                 <span
+                                                    className="text-[17px] font-medium flex items-center justify-center"
+                                                    style={{
+                                                    width: '36px',
+                                                    height: '36px',
+                                                    borderRadius: '50%',
+                                                    border: '2px solid #3b82f6',
+                                                    padding: '4px',
+                                                    color: note.id === currentNoteId ? '#fff' : '#3b82f6',
+                                                    backgroundColor: note.id === currentNoteId ? '#3b82f6' : 'transparent',
+                                                    transition: 'all 0.3s ease',
+                                                    }}
+                                                >
+                                                    {idx + 1}
+                                                </span>
                                                 <div className="flex-1">
-                                                    <h3 className={`flex items-center gap-1 font-bold text-lg ${note.id === currentNoteId ? 'text-white' : 'text-blue-900'}`}>{note.title}</h3>
-                                                    <p className="text-xs text-gray-400">{new Date(note.updatedAt).toLocaleDateString()}</p>
+                                                    <h3 className={`flex items-center gap-1 font-400 text-lg ${note.id === currentNoteId ? 'text-white' : 'text-gray-400'}`}>{note.title}</h3>
+                                                    <p className="text-xs text-gray-400">
+                                                        {new Date(note.updatedAt).toLocaleString('en-US', {
+                                                            year: 'numeric',
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                            hour: '2-digit',
+                                                            minute: '2-digit',
+                                                            hour12: true, 
+                                                        })}
+                                                        </p>
+
+
                                             </div>
                                             <div className="lock-button-note">
                                             {isLocked && <Lock size={22} className="lock-animated" />} 
