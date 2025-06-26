@@ -5,7 +5,6 @@ import { Moon, Sun, Calendar, KeyRound, LogIn, Smartphone, ShieldCheck, Edit3, M
 import toast from 'react-hot-toast';
 import './Profile.css';
 
-// Modal Components
 const ConfirmationModal = ({ 
   isOpen, 
   onClose, 
@@ -86,7 +85,6 @@ export default function Profile() {
     });
   }, [user]);
 
-  // --- Poll for latest visitors and active count ---
   useEffect(() => {
     let isMounted = true;
     function fetchActivity() {
@@ -111,7 +109,6 @@ export default function Profile() {
     };
   }, []);
 
-  // Simulated/derived advanced stats (replace with real data if available)
   const stats: { label: string; value: string | number; icon: React.ReactElement; tooltip: string }[] = [
     {
       label: 'Account Created',

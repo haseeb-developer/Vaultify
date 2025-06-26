@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import * as CryptoJS from 'crypto-js';
 import toast from 'react-hot-toast';
-import { Plus, Lock, Trash2, Save, ShieldOff, Search, Bold, Italic, Underline, Heading, PaintBucket, X, Folder as FolderIcon, Palette, Tag, Edit3, XCircle, CheckCircle, Star } from 'lucide-react';
+import { Plus, Lock, Trash2, Save, ShieldOff, Search, Bold, Italic, Underline, Heading, PaintBucket, X, Folder as FolderIcon, Palette, Tag, Edit3, XCircle, CheckCircle, Star, ChevronDown, ChevronRight, Info } from 'lucide-react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import BoldExt from '@tiptap/extension-bold';
@@ -15,18 +15,18 @@ import Highlight from '@tiptap/extension-highlight';
 import './Dashboard.css';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// Define the structure of a Folder
+
 interface Folder {
   id: string;
   name: string;
-  color: string; // HEX or CSS color
-  parentId?: string; // for nested folders
+  color: string; 
+  parentId?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-// Update Note interface to include folderId and isFavorite
 interface Note {
   id: string;
   title: string;
@@ -37,96 +37,362 @@ interface Note {
   createdAt: string;
   updatedAt: string;
   tags?: string[];
-  folderId?: string; // reference to the folder/group
-  isFavorite?: boolean; // new
+  folderId?: string;
+  isFavorite?: boolean;
 }
 
-// Password Modal (Tailwind, animated, secure)
-const PasswordModal = ({ note, onUnlock, onCancel }: { note: Note | null; onUnlock: (password: string) => void; onCancel: () => void; }) => {
-    const [password, setPassword] = useState('');
-    useEffect(() => {
-        document.body.classList.add('overflow-hidden');
-        return () => document.body.classList.remove('overflow-hidden');
-    }, []);
-    return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm" aria-modal="true" role="dialog" tabIndex={-1}>
-            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative animate-popIn scale-95 opacity-0 animate-fadeInModal">
-                <button onClick={onCancel} className="absolute top-3 right-3 text-gray-400 hover:bg-blue-500 hover:text-white rounded-full p-2 transition-all duration-200 focus:ring-2 focus:ring-blue-400"><X size={20} /></button>
-                <h2 className="text-2xl font-bold mb-2 text-blue-600">Enter Password</h2>
-                <p className="mb-4 text-gray-500">This note is locked. Please enter the password to view it.</p>
-                {note?.passwordHint && <p className="mb-4 text-sm italic bg-gray-100 rounded px-3 py-2 text-gray-500">Hint: {note.passwordHint}</p>}
-                <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full border-b-2 border-gray-200 focus:border-blue-500 outline-none py-2 mb-6 text-lg transition-all duration-200 rounded-lg focus:bg-blue-50"
-                    placeholder="Password"
-                    autoFocus
-                />
-                <div className="flex justify-end gap-3">
-                    <button onClick={onCancel} className="px-5 py-2 rounded-full bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 hover:scale-105 transition-all duration-200">Cancel</button>
-                    <button onClick={() => onUnlock(password)} className="px-5 py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 hover:scale-105 transition-all duration-200">Unlock</button>
-                </div>
+const UnlockNoteModal = ({ note, onUnlock, onCancel, error, loading }: {
+  note: Note;
+  onUnlock: (password: string) => void;
+  onCancel: () => void;
+  error?: string;
+  loading?: boolean;
+}) => {
+  const [password, setPassword] = useState('');
+  const [localError, setLocalError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    setPassword('');
+    setLocalError(null);
+    setTimeout(() => inputRef.current?.focus(), 100);
+  }, [note]);
+
+  // Prevent pasting for extra security
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    setLocalError('Pasting is disabled for security.');
+  };
+
+  // Animated lock icon
+  const LockAnimated = () => (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      animation: 'lockFloat 2.2s ease-in-out infinite',
+      filter: 'drop-shadow(0 0 12px #4f8cffcc) drop-shadow(0 0 32px #4f8cff44)'
+    }}>
+      <Lock size={38} style={{ color: '#4f8cff', filter: 'drop-shadow(0 0 8px #4f8cff)' }} />
+    </span>
+  );
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.22, ease: 'easeInOut' }}
+        className="fixed inset-0 z-[200] flex items-center justify-center"
+        aria-modal="true"
+        role="dialog"
+        tabIndex={-1}
+        style={{
+          minHeight: '100vh',
+          background: 'rgba(10, 14, 22, 0.82)',
+          backdropFilter: 'blur(7px)',
+          WebkitBackdropFilter: 'blur(7px)',
+          fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
+        }}
+      >
+        <motion.div
+          initial={{ scale: 0.92, opacity: 0, y: 40 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.92, opacity: 0, y: 40 }}
+          transition={{ type: 'spring', stiffness: 340, damping: 30, duration: 0.32 }}
+          className="relative"
+          style={{
+            background: 'rgba(44, 47, 51, 0.92)',
+            borderRadius: '.8rem',
+            boxShadow: '0 12px 48px #18191c, 0 0 0 3px #4f8cff',
+            padding: '3.2rem 2.5rem 2.7rem 2.5rem',
+            maxWidth: 680,
+            minWidth: 740,
+            width: '100%',
+            border: '2.5px solid #4f8cff',
+            textAlign: 'center',
+            color: '#e3e6ea',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <button
+            onClick={onCancel}
+            className="absolute top-4 right-4 text-blue-300 hover:bg-blue-500 hover:text-white rounded-full p-2 transition-all duration-200 focus:ring-2 focus:ring-blue-400"
+            style={{ fontWeight: 700, fontSize: 22, background: 'rgba(36,39,46,0.7)' }}
+          >
+            <X size={26} />
+          </button>
+          <div className="flex flex-col items-center gap-3 mb-4">
+            <LockAnimated />
+            <h2 className="text-3xl font-extrabold text-blue-400 tracking-tight" style={{ letterSpacing: '-0.01em', marginTop: 8, marginBottom: 0 }}>
+              Enter Password
+            </h2>
+          </div>
+          <p className="mb-5 text-blue-200 text-lg font-medium" style={{ fontWeight: 500 }}>
+            This note is locked. Please enter the password to view it.
+          </p>
+          {note.passwordHint && (
+            <div style={{
+              background: 'rgba(79,140,255,0.13)',
+              color: '#4f8cff',
+              borderRadius: '.8rem',
+              padding: '0.9rem 1.2rem',
+              marginBottom: 24,
+              fontWeight: 600,
+              fontSize: 18,
+              border: '1.5px solid #4f8cff',
+              boxShadow: '0 2px 12px #4f8cff22',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+            }}>
+              <span style={{ marginRight: 8, display: 'flex', alignItems: 'center' }}><Info size={20} style={{ color: '#4f8cff', opacity: 0.8 }} /></span>
+              <span style={{ fontStyle: 'italic', opacity: 0.92 }}>Hint:</span> <span style={{ marginLeft: 6 }}>{note.passwordHint}</span>
             </div>
-        </div>
-    );
+          )}
+          <div style={{ marginBottom: 18 }}>
+            <input
+              ref={inputRef}    
+              type="password"
+              value={password}
+              onChange={e => { setPassword(e.target.value); setLocalError(null); }}
+              onPaste={handlePaste}
+              maxLength={64}
+              className="w-full border-2 border-blue-400 focus:border-blue-500 outline-none py-4 px-5 mb-2 text-xl rounded-2xl bg-[#23272a] text-blue-100 placeholder:text-blue-400 transition-all duration-200 font-semibold shadow-inner"
+              placeholder="Password"
+              disabled={loading}
+              autoFocus
+              style={{
+                letterSpacing: '0.04em',
+                fontSize: 22,
+                background: 'rgba(36,39,46,0.98)',
+                boxShadow: '0 2px 12px #4f8cff22',
+                borderRadius: '.8rem',
+                borderWidth: 2,
+                borderColor: '#4f8cff',
+                outline: 'none',
+                fontWeight: 700,
+              }}
+            />
+          </div>
+          {(error || localError) && (
+            <div className="mb-4 text-pink-500 text-lg font-bold animate-fadeIn" style={{ minHeight: 12 }}>{error || localError}</div>
+          )}
+          <div className="flex justify-center gap-5 mt-2">
+            <button
+              onClick={onCancel}
+              className="px-7 py-3 rounded-full font-bold bg-gradient-to-r from-gray-700 via-gray-800 to-gray-900 text-blue-200 hover:bg-blue-900 hover:text-white shadow transition-all duration-200 border-2 border-blue-900"
+              style={{ fontSize: 20, minWidth: 120, borderRadius: '.8rem', boxShadow: '0 2px 12px #23272a', flex: '1' }}
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={async () => {
+                setLocalError(null);
+                if (!password) {
+                  setLocalError('Password cannot be empty.');
+                  return;
+                }
+                // Add a short delay for brute-force protection
+                await new Promise(res => setTimeout(res, 500));
+                onUnlock(password);
+              }}
+              className={`px-7 py-3 rounded-full font-bold bg-gradient-to-r from-blue-500 via-blue-400 to-blue-600 text-white shadow-lg border-2 border-blue-400 hover:scale-105 active:scale-95 transition-all duration-200 ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
+              style={{ fontSize: 20, minWidth: 120, borderRadius: '.8rem', boxShadow: '0 2px 16px #4f8cff44',  flex: '1'  }}
+              disabled={loading || !password}
+            >
+              {loading ? 'Unlocking...' : 'Unlock'}
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
 };
 
-// Set Password Modal (Tailwind, animated, secure)
 const SetPasswordModal = ({ onSetPassword, onCancel }: { onSetPassword: (password: string, hint: string) => void; onCancel: () => void; }) => {
-    const [password, setPassword] = useState('');
-    const [hint, setHint] = useState('');
-    const [touched, setTouched] = useState(false);
-    const minLength = 5;
-    const hasSpecial = /[^A-Za-z0-9]/.test(password);
-    const tooShort = password.length > 0 && password.length < minLength;
-    useEffect(() => {
-        document.body.classList.add('overflow-hidden');
-        return () => document.body.classList.remove('overflow-hidden');
-    }, []);
-    return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm" aria-modal="true" role="dialog" tabIndex={-1}>
-            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative animate-popIn scale-95 opacity-0 animate-fadeInModal">
-                <button onClick={onCancel} className="absolute top-3 right-3 text-gray-400 hover:bg-blue-500 hover:text-white rounded-full p-2 transition-all duration-200 focus:ring-2 focus:ring-blue-400"><X size={20} /></button>
-                <h2 className="text-2xl font-bold mb-2 text-blue-600">Set a Password</h2>
-                <p className="mb-4 text-gray-500">Secure your note with a password. You can also add an optional hint.</p>
-                <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => { setPassword(e.target.value); setTouched(true); }}
-                    className="w-full border-b-2 border-gray-200 focus:border-blue-500 outline-none py-2 mb-1 text-lg transition-all duration-200 rounded-lg focus:bg-blue-50"
-                    placeholder="Enter new password"
-                    autoFocus
-                />
-                {/* Password validation feedback */}
-                <div className="min-h-[1.5rem] mb-2">
-                  {touched && password.length > 0 && (
-                    <>
-                      {tooShort && <span className="text-red-500 text-sm">Password must be at least {minLength} characters.</span>}
-                      {!tooShort && <span className="text-green-600 text-sm">Password length is good.</span>}
-                      <br />
-                      {hasSpecial ? (
-                        <span className="text-green-600 text-sm">Contains special character ✓</span>
-                      ) : (
-                        <span className="text-gray-500 text-sm">Add a special character for better security.</span>
-                      )}
-                    </>
+  const [password, setPassword] = useState('');
+  const [hint, setHint] = useState('');
+  const [touched, setTouched] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
+  const minLength = 5;
+  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+  const tooShort = password.length > 0 && password.length < minLength;
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    setPassword('');
+    setHint('');
+    setTouched(false);
+    setLocalError(null);
+    setTimeout(() => inputRef.current?.focus(), 100);
+  }, []);
+
+  // Animated lock icon
+  const LockAnimated = () => (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      animation: 'lockFloat 2.2s ease-in-out infinite',
+      filter: 'drop-shadow(0 0 12px #4f8cffcc) drop-shadow(0 0 32px #4f8cff44)'
+    }}>
+      <Lock size={38} style={{ color: '#4f8cff', filter: 'drop-shadow(0 0 8px #4f8cff)' }} />
+    </span>
+  );
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.22, ease: 'easeInOut' }}
+        className="fixed inset-0 z-[200] flex items-center justify-center"
+        aria-modal="true"
+        role="dialog"
+        tabIndex={-1}
+        style={{
+          minHeight: '100vh',
+          background: 'rgba(10, 14, 22, 0.82)',
+          backdropFilter: 'blur(7px)',
+          WebkitBackdropFilter: 'blur(7px)',
+          fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
+        }}
+      >
+        <motion.div
+          initial={{ scale: 0.92, opacity: 0, y: 40 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.92, opacity: 0, y: 40 }}
+          transition={{ type: 'spring', stiffness: 340, damping: 30, duration: 0.32 }}
+          className="relative"
+          style={{
+            background: 'rgba(44, 47, 51, 0.92)',
+            borderRadius: '.8rem',
+            boxShadow: '0 12px 48px #18191c, 0 0 0 3px #4f8cff',
+            padding: '3.2rem 2.5rem 2.7rem 2.5rem',
+            maxWidth: 780,
+            minWidth: 840,
+            width: '100%',
+            border: '2.5px solid #4f8cff',
+            textAlign: 'center',
+            color: '#e3e6ea',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <button
+            onClick={onCancel}
+            className="absolute top-4 right-4 text-blue-300 hover:bg-blue-500 hover:text-white rounded-full p-2 transition-all duration-200 focus:ring-2 focus:ring-blue-400"
+            style={{ fontWeight: 700, fontSize: 22, background: 'rgba(36,39,46,0.7)' }}
+          >
+            <X size={26} />
+          </button>
+          <div className="flex flex-col items-center gap-3 mb-4">
+            <LockAnimated />
+            <h2 className="text-3xl font-extrabold text-blue-400 tracking-tight" style={{ letterSpacing: '-0.01em', marginTop: 8, marginBottom: 0 }}>
+              Set a Password
+            </h2>
+          </div>
+          <p className="mb-5 text-blue-200 text-lg font-medium" style={{ fontWeight: 500 }}>
+            Secure your note with a password. You can also add an optional hint.
+          </p>
+          <div style={{ marginBottom: 8 }}>    
+            <input
+              ref={inputRef}
+              type="password"
+              value={password}
+              onChange={e => { setPassword(e.target.value); setTouched(true); setLocalError(null); }}
+              maxLength={64}
+              className="w-full border-2 border-blue-400 focus:border-blue-500 outline-none py-4 px-5 mb-2 text-xl rounded-2xl bg-[#23272a] text-blue-100 placeholder:text-blue-400 transition-all duration-200 font-semibold shadow-inner"
+              placeholder="Enter new password"
+              autoFocus
+              style={{
+                letterSpacing: '0.04em',
+                fontSize: 22,
+                background: 'rgba(36,39,46,0.98)',
+                boxShadow: '0 2px 12px #4f8cff22',
+                borderRadius: '.8rem',
+                borderWidth: 2,
+                borderColor: '#4f8cff',
+                outline: 'none',
+                fontWeight: 700,
+              }}
+            />
+
+          </div>
+          <div style={{ marginBottom: 24 }}>
+            <input
+              type="text"
+              value={hint}
+              onChange={e => setHint(e.target.value)}
+              maxLength={64}
+              className="w-full border-2 border-blue-200 focus:border-blue-400 outline-none py-3 px-5 text-lg rounded-2xl bg-[#23272a] text-blue-200 placeholder:text-blue-400 transition-all duration-200 font-semibold shadow-inner"
+              placeholder="Password hint (optional)"
+              style={{
+                fontSize: 18,
+                background: 'rgba(36,39,46,0.92)',
+                boxShadow: '0 2px 8px #4f8cff11',
+                borderRadius: '.8rem',
+                borderWidth: 2,
+                borderColor: '#4f8cff',
+                outline: 'none',
+                fontWeight: 600,
+              }}
+            />
+          </div>
+
+                      {/* Password validation feedback */}
+            <div style={{ minHeight: 32, marginBottom: 28, marginTop: 0 }}>
+              {touched && password.length > 0 && (
+                <>
+                  {tooShort && <span style={{ color: '#ff4f4f', fontWeight: 600, fontSize: 16 }}>Password must be at least {minLength} characters.</span>}
+                  {!tooShort && <span style={{ color: '#22d3ee', fontWeight: 600, fontSize: 16 }}>Password length is good.</span>}
+                  <br />
+                  {hasSpecial ? (
+                    <span style={{ color: '#22d3ee', fontWeight: 600, fontSize: 15 }}>Contains special character ✓</span>
+                  ) : (
+                    <span style={{ color: '#bfcfff', fontWeight: 500, fontSize: 15 }}>Add a special character for better security.</span>
                   )}
-                </div>
-                <input
-                    type="text"
-                    value={hint}
-                    onChange={e => setHint(e.target.value)}
-                    className="w-full border-b-2 border-gray-200 focus:border-blue-500 outline-none py-2 mb-6 text-lg transition-all duration-200 rounded-lg focus:bg-blue-50"
-                    placeholder="Password hint (optional)"
-                />
-                <div className="flex justify-end gap-3">
-                    <button onClick={onCancel} className="px-5 py-2 rounded-full bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 hover:scale-105 transition-all duration-200">Cancel</button>
-                    <button onClick={() => onSetPassword(password, hint)} className="px-5 py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 hover:scale-105 transition-all duration-200" disabled={tooShort}>Set Password & Lock</button>
-                </div>
+                </>
+              )}
             </div>
-        </div>
-    );
+          {localError && (
+            <div className="mb-1 text-pink-500 text-lg font-bold animate-fadeIn" style={{ minHeight: 1 }}>{localError}</div>
+          )}
+          <div className="flex justify-center gap-5 mt-2">
+            <button
+              onClick={onCancel}
+              className="px-7 py-3 rounded-full font-500 bg-gradient-to-r from-gray-700 via-gray-800 to-gray-900 text-blue-200 hover:bg-blue-900 hover:text-white shadow transition-all duration-200 border-2 border-blue-900"
+              style={{ fontSize: 20, minWidth: 120, borderRadius: '.8rem', boxShadow: '0 2px 12px #23272a', flex: '1' }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                setLocalError(null);
+                if (!password) {
+                  setLocalError('Password cannot be empty.');
+                  return;
+                }
+                if (password.trim().toLowerCase() === hint.trim().toLowerCase() && hint.trim() !== '') {
+                  setLocalError('Password hint should not match the password.');
+                  return;
+                }
+                if (tooShort) {
+                  setLocalError('Password is too short.');
+                  return;
+                }
+                onSetPassword(password, hint);
+              }}
+              className={`px-7 py-3 rounded-full font-[500] bg-gradient-to-r from-blue-500 via-blue-400 to-blue-600 text-white shadow-lg border-2 border-blue-400 hover:scale-105 active:scale-95 transition-all duration-200`}
+              style={{ fontSize: 20, minWidth: 120, borderRadius: '.8rem', boxShadow: '0 2px 16px #4f8cff44', flex: '1'  }}
+              disabled={tooShort}
+            >
+              Set Password & Lock
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
 };
 
 // FolderModal: add same modal enhancements
@@ -170,6 +436,20 @@ const FolderModal = ({ onCreate, onCancel }: { onCreate: (name: string, color: s
     );
 };
 
+// Custom Alert Modal
+const CustomAlertModal = ({ message, onClose }: { message: string; onClose: () => void }) => (
+  <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm" aria-modal="true" role="alert" tabIndex={-1}>
+    <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative animate-popIn">
+      <button onClick={onClose} className="absolute top-3 right-3 text-gray-400 hover:bg-blue-500 hover:text-white rounded-full p-2 transition-all duration-200 focus:ring-2 focus:ring-blue-400"><X size={20} /></button>
+      <h2 className="text-2xl font-bold mb-4 text-pink-600">Warning</h2>
+      <p className="mb-6 text-lg text-gray-700 text-center">{message}</p>
+      <div className="flex justify-center">
+        <button onClick={onClose} className="px-6 py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all duration-200">OK</button>
+      </div>
+    </div>
+  </div>
+);
+
 export default function Dashboard() {
     const { user } = useUser();
     const [notes, setNotes] = useState<Note[]>([]);
@@ -196,6 +476,15 @@ export default function Dashboard() {
     const [noteFilter, setNoteFilter] = useState<'all' | 'locked' | 'unlocked' | 'favorite'>('all');
     const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
     const [showMarkdown, setShowMarkdown] = useState(false);
+    const [folderOpen, setFolderOpen] = useState<{ [id: string]: boolean }>({});
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [newNoteSpamCount, setNewNoteSpamCount] = useState(0);
+    const [newNoteBlockedUntil, setNewNoteBlockedUntil] = useState<number | null>(null);
+    const [showSpamAlert, setShowSpamAlert] = useState(false);
+    const [newNoteCountdown, setNewNoteCountdown] = useState<number | null>(null);
+    const didLoadRef = useRef(false);
+    const [unlockError, setUnlockError] = useState<string | null>(null);
+    const [unlockLoading, setUnlockLoading] = useState(false);
 
     const currentNote = notes.find(note => note.id === currentNoteId);
     const isTemporarilyUnlocked = currentNote?.isLocked && tempUnlockedContent !== null;
@@ -234,13 +523,14 @@ export default function Dashboard() {
     }, [currentNoteId, tempUnlockedContent, canEdit]);
 
     useEffect(() => {
-        if (user?.unsafeMetadata.notes || user?.unsafeMetadata.folders) {
+        if (!didLoadRef.current && (user?.unsafeMetadata.notes || user?.unsafeMetadata.folders)) {
             const loadedNotes = (user.unsafeMetadata.notes as Note[]) || [];
             const loadedFolders = (user.unsafeMetadata.folders as Folder[]) || [];
             const sortedNotes = loadedNotes.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
             const sortedFolders = loadedFolders.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
             setNotes(sortedNotes);
             setFolders(sortedFolders);
+            didLoadRef.current = true;
         }
         setIsLoading(false);
     }, [user]);
@@ -260,7 +550,7 @@ export default function Dashboard() {
     }, [currentNoteId]);
 
     useEffect(() => {
-        setWordCount(editor && editor.getText ? editor.getText().trim().split(/\s+/).length : 0);
+        setWordCount(editor && editor.getText ? editor.getText().length : 0);
         if (currentNote && (!currentNote.isLocked || isTemporarilyUnlocked) && editor) {
             if (autoSaveTimeoutRef.current) clearTimeout(autoSaveTimeoutRef.current);
             autoSaveTimeoutRef.current = window.setTimeout(() => handleSaveNote(false), 2000);
@@ -278,6 +568,22 @@ export default function Dashboard() {
     };
 
     const handleNewNote = async () => {
+        // Block if user is spamming
+        if (newNoteBlockedUntil && Date.now() < newNoteBlockedUntil) {
+            setShowSpamAlert(true);
+            return;
+        }
+        // Check for unsaved empty notes
+        const emptyNotes = notes.filter(n => n.title === 'Untitled Note' && (!n.content || n.content.trim() === ''));
+        if (emptyNotes.length >= 3) {
+            setNewNoteSpamCount(c => c + 1);
+            if (newNoteSpamCount + 1 >= 3) {
+                setNewNoteBlockedUntil(Date.now() + 5000); // 5 seconds
+                setNewNoteCountdown(5);
+                setShowSpamAlert(true);
+                return;
+            }
+        }
         const newNote: Note = {
             id: new Date().toISOString(),
             title: 'Untitled Note',
@@ -321,37 +627,51 @@ export default function Dashboard() {
         }
     };
 
-    const handleUnlockSubmit = (password: string) => {
-        if (!noteToProcess || !password) return;
+    const handleUnlockSubmit = async (password: string) => {
+        if (!noteToProcess) return;
+        setUnlockError(null);
+        setUnlockLoading(true);
         // Brute-force protection
         if (passwordAttempts[noteToProcess.id] && passwordAttempts[noteToProcess.id] >= 5) {
-            toast.error('Too many incorrect attempts. Try again later.');
+            setUnlockError('Too many incorrect attempts. Try again later.');
+            setUnlockLoading(false);
+            return;
+        }
+        if (!password) {
+            setUnlockError('Password cannot be empty.');
+            setUnlockLoading(false);
             return;
         }
         try {
             const decrypted = CryptoJS.AES.decrypt(noteToProcess.encryptedContent!, password).toString(CryptoJS.enc.Utf8);
             if (!decrypted) {
                 setPasswordAttempts(pa => ({...pa, [noteToProcess.id]: (pa[noteToProcess.id]||0)+1}));
-                toast.error('Incorrect password.');
+                setUnlockError('Incorrect password.');
+                setUnlockLoading(false);
                 return;
             }
             if (unlockMode === 'view') {
                 setTempUnlockedContent(decrypted);
                 setCurrentNoteId(noteToProcess.id);
                 toast.success('Note unlocked for editing.');
+                setIsUnlockModalOpen(false);
+                setNoteToProcess(null);
             } else if (unlockMode === 'permanent') {
                 const updatedNotes = notes.map(n => n.id === noteToProcess.id ? { ...n, content: decrypted, isLocked: false, passwordHint: undefined, encryptedContent: undefined } : n);
                 saveDataToClerk(updatedNotes, folders);
                 toast.success('Note permanently unlocked!');
+                setIsUnlockModalOpen(false);
+                setNoteToProcess(null);
             } else if (unlockMode === 'delete') {
                 handleDeleteNoteConfirmed(noteToProcess.id);
+                setIsUnlockModalOpen(false);
+                setNoteToProcess(null);
             }
         } catch {
             setPasswordAttempts(pa => ({...pa, [noteToProcess.id]: (pa[noteToProcess.id]||0)+1}));
-            toast.error('Incorrect password.');
+            setUnlockError('Incorrect password.');
         } finally {
-            setIsUnlockModalOpen(false);
-            setNoteToProcess(null);
+            setUnlockLoading(false);
         }
     };
 
@@ -529,31 +849,74 @@ export default function Dashboard() {
         saveDataToClerk(reorderedNotes, folders);
     }
 
+    // Helper to toggle folder open/close
+    const toggleFolder = (id: string) => setFolderOpen(prev => ({ ...prev, [id]: !prev[id] }));
+
+    // Countdown effect for New Note button
+    useEffect(() => {
+        if (newNoteCountdown === null) return;
+        if (newNoteCountdown <= 0) {
+            setNewNoteBlockedUntil(null);
+            setNewNoteCountdown(null);
+            setNewNoteSpamCount(0);
+            return;
+        }
+        const timer = setTimeout(() => setNewNoteCountdown((c) => (c ? c - 1 : null)), 1000);
+        return () => clearTimeout(timer);
+    }, [newNoteCountdown]);
+
+    useEffect(() => {
+        if (isUnlockModalOpen || isSetPasswordModalOpen || isFolderModalOpen) {
+            document.body.classList.add('overflow-hidden');
+        } else {
+            document.body.classList.remove('overflow-hidden');
+        }
+        return () => document.body.classList.remove('overflow-hidden');
+    }, [isUnlockModalOpen, isSetPasswordModalOpen, isFolderModalOpen]);
+
     if (isLoading) return <div className="loading-container"><h2>Loading...</h2></div>;
 
     return (
         <>
-            {isUnlockModalOpen && <PasswordModal note={noteToProcess} onUnlock={handleUnlockSubmit} onCancel={() => setIsUnlockModalOpen(false)} />}
-            {isSetPasswordModalOpen && <SetPasswordModal onSetPassword={handleSetPassword} onCancel={() => setIsSetPasswordModalOpen(false)} />}
+            <AnimatePresence>
+                {isUnlockModalOpen && noteToProcess && (
+                    <UnlockNoteModal
+                        note={noteToProcess}
+                        onUnlock={handleUnlockSubmit}
+                        onCancel={() => { setIsUnlockModalOpen(false); setNoteToProcess(null); setUnlockError(null); setUnlockLoading(false); }}
+                        error={unlockError || undefined}
+                        loading={unlockLoading}
+                    />
+                )}
+            </AnimatePresence>
+            <AnimatePresence>
+                {isSetPasswordModalOpen && (
+                    <SetPasswordModal
+                        onSetPassword={handleSetPassword}
+                        onCancel={() => setIsSetPasswordModalOpen(false)}
+                    />
+                )}
+            </AnimatePresence>
             {isFolderModalOpen && <FolderModal onCreate={handleCreateFolderSubmit} onCancel={() => setIsFolderModalOpen(false)} />}
+            {showSpamAlert && <CustomAlertModal message={"DON'T SPAM NEW NOTE IF U DON'T WISH TO SAVE ANYTHING, THIS ISN'T A GAME"} onClose={() => setShowSpamAlert(false)} />}
             <div className="notes-dashboard-container flex flex-col lg:flex-row w-full h-full min-h-screen gap-0 lg:gap-6 xl:gap-10 overflow-x-hidden">
                 {/* SIDEBAR START */}
-                <aside className="w-full lg:w-[370px] xl:w-[400px] flex-shrink-0 bg-gradient-to-br from-blue-100/80 via-white/80 to-blue-200/80 backdrop-blur-2xl shadow-2xl rounded-b-3xl lg:rounded-3xl p-4 sm:p-6 flex flex-col gap-6 border border-blue-200/60 relative z-10 overflow-y-auto max-h-[90vh] lg:max-h-[calc(100vh-40px)] min-h-[0]">
+                <aside className="w-full bg-[#36373e] lg:w-[370px] xl:w-[400px] flex-shrink-0 border-0 shadow-2xl rounded-b-3xl lg:rounded-3xl p-4 sm:p-6 flex flex-col gap-6 relative z-10 overflow-y-auto max-h-[90vh] lg:max-h-[calc(100vh-40px)] min-h-[0]">
                     {/* Search */}
-                    <div className="flex items-center gap-3 bg-white/70 rounded-xl shadow-inner px-4 py-3 mb-2 border border-blue-100/60">
-                        <Search size={22} className="text-blue-400" />
+                    <div className="flex items-center gap-3 sidebar-search bg-white/70 rounded-xl shadow-inner px-4 py-3 mb-2 border border-blue-100/60">
+                        <Search size={22} className="text-blue-400 sidebar-search-icon" />
                     <input
                         type="text"
                         placeholder="Search notes by title..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                            className="flex-1 bg-transparent outline-none text-lg text-blue-900 placeholder:text-blue-300 font-medium"
+                            className="flex-1 bg-transparent sidebar-search-input outline-none text-lg text-blue-900 placeholder:text-blue-300 font-medium"
                     />
                 </div>
                     {/* Folders Header */}
-                    <div className="flex items-center justify-between mb-1">
-                        <h2 className="text-2xl font-extrabold text-blue-700 flex items-center gap-2 tracking-tight"><FolderIcon size={26} className="text-blue-400" />Folders</h2>
-                        <button onClick={handleCreateFolder} className="bg-gradient-to-r from-blue-500 to-blue-400 text-white font-bold rounded-full px-5 py-2 flex items-center gap-2 shadow-lg hover:scale-105 active:scale-95 transition-all"><Plus size={20}/> New Folder</button>
+                    <div className="flex items-center justify-between mb-1 ">
+                        <h2 className="text-2xl font-[300] text-[#9b9ca3] flex items-center gap-2 tracking-tight"><FolderIcon size={26} className="text-blue-400 " />Folders</h2>
+                        <button onClick={handleCreateFolder} className="action-btn px-5 py-2 flex items-center gap-2 shadow-lg hover:scale-105 active:scale-95 transition-all "><Plus size={20}/> New Folder</button>
                     </div>
                     {/* Folders List */}
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleFolderDragEnd}>
@@ -572,22 +935,25 @@ export default function Dashboard() {
                         {folders.map(folder => (
                             <div
                                 key={folder.id}
-                                        className={`group relative flex items-center gap-3 min-h-[60px] rounded-2xl px-5 py-3 cursor-pointer shadow-md border-2 transition-all duration-200 ${currentFolderId === folder.id ? 'bg-gradient-to-r from-white via-blue-200 to-blue-400 text-blue-900 border-blue-400 scale-[1.03]' : 'bg-white/80 border-blue-100 hover:scale-105'}`}
+                                        className={`group relative flex items-center gap-3 min-h-[60px] rounded-2xl px-5 py-3 cursor-pointer shadow-md border-2 transition-all duration-200 ${currentFolderId === folder.id ? 'bg-gradient-to-r from-white via-blue-200 to-blue-400 text-blue-900 border-blue-400 scale-[1.03]' : 'bg-white/80 border-blue-100 hover:scale-105 sidebar-folder'}`}
                                 onClick={() => setCurrentFolderId(folder.id)}
                                         style={{ borderLeft: `8px solid ${folder.color}` }}
                                     >
+                                        <span onClick={() => toggleFolder(folder.id)} style={{ cursor: 'pointer', marginRight: 8 }}>
+                                            {folderOpen[folder.id] ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                                        </span>
                                         <FolderIcon size={22} className="mr-2" style={{ color: folder.color }} />
                                         <span className="flex-1 font-bold text-lg" style={{ color: folder.color }}>{folder.name}</span>
                                         <span className="rounded-full px-4 py-1 font-extrabold text-base bg-pink-500 text-white shadow">{notes.filter(n => n.folderId === folder.id).length}</span>
                                 <button
-                                            className="ml-2 bg-pink-100 hover:bg-pink-200 border border-pink-200 rounded-full p-2 flex items-center justify-center transition"
+                                            className="ml-2 sidebar-folder border border-pink-200 rounded-full p-2 flex items-center justify-center transition "
                                     title="Rename Folder"
                                     onClick={e => { e.stopPropagation(); handleRenameFolder(folder.id); }}
                                         >
                                             <Palette size={16} style={{ color: folder.color }} />
                                         </button>
                                 <button
-                                            className="ml-2 bg-pink-100 hover:bg-pink-200 border border-pink-200 rounded-full p-2 flex items-center justify-center transition"
+                                            className="ml-2 sidebar-folder border border-pink-200 rounded-full p-2 flex items-center justify-center transition"
                                     title="Delete Folder"
                                     onClick={e => { e.stopPropagation(); handleDeleteFolder(folder.id); }}
                                         >
@@ -599,28 +965,65 @@ export default function Dashboard() {
                         </SortableContext>
                     </DndContext>
                     {/* Notes Header */}
-                    <div className="flex items-center justify-between mt-6 mb-1">
-                        <h2 className="text-2xl font-extrabold text-blue-700 flex items-center gap-2 tracking-tight"><Edit3 size={24} className="text-blue-400" />Notes</h2>
-                        <button onClick={handleNewNote} className="bg-gradient-to-r from-blue-500 to-blue-400 text-white font-bold rounded-full px-5 py-2 flex items-center gap-2 shadow-lg hover:scale-105 active:scale-95 transition-all"><Plus size={20}/> New Note</button>
+                    <div className="flex items-center justify-between mt-6 mb-1 ">
+                        <h2 className="text-2xl font-[400] text-[#9b9ca3] flex items-center gap-2"><Edit3 size={24} className="text-blue-400" />Notes</h2>
+                        <button
+                            onClick={handleNewNote}
+                            className={`action-btn px-5 py-2 flex items-center gap-2 shadow-lg transition-all ${newNoteBlockedUntil && Date.now() < newNoteBlockedUntil ? 'opacity-60 cursor-not-allowed' : 'hover:scale-105 active:scale-95'}`}
+                            disabled={!!(newNoteBlockedUntil && Date.now() < newNoteBlockedUntil)}
+                        >
+                            <Plus size={20}/>
+                            {newNoteCountdown && newNoteBlockedUntil && Date.now() < newNoteBlockedUntil ? `New Note (${newNoteCountdown})` : 'New Note'}
+                        </button>
                     </div>
                     {/* Note Filters */}
-                    <div className="flex flex-wrap gap-3 mb-3">
-                        <button
-                            className={`flex-1 min-w-[110px] flex items-center justify-center gap-2 px-4 py-2 rounded-full font-bold text-lg shadow transition-all duration-150 ${noteFilter === 'all' ? 'bg-blue-500 text-white scale-105' : 'bg-white/80 text-blue-500 border border-blue-200 hover:bg-blue-100 hover:scale-105'}`}
-                            onClick={() => setNoteFilter('all')}
-                        ><span>All</span></button>
-                        <button
-                            className={`flex-1 min-w-[110px] flex items-center justify-center gap-2 px-4 py-2 rounded-full font-bold text-lg shadow transition-all duration-150 ${noteFilter === 'locked' ? 'bg-blue-500 text-white scale-105' : 'bg-white/80 text-blue-500 border border-blue-200 hover:bg-blue-100 hover:scale-105'}`}
-                            onClick={() => setNoteFilter('locked')}
-                        ><Lock size={18}/> Locked</button>
-                        <button
-                            className={`flex-1 min-w-[110px] flex items-center justify-center gap-2 px-4 py-2 rounded-full font-bold text-lg shadow transition-all duration-150 ${noteFilter === 'unlocked' ? 'bg-blue-500 text-white scale-105' : 'bg-white/80 text-blue-500 border border-blue-200 hover:bg-blue-100 hover:scale-105'}`}
-                            onClick={() => setNoteFilter('unlocked')}
-                        >No Lock</button>
-                        <button
-                            className={`flex-1 min-w-[110px] flex items-center justify-center gap-2 px-4 py-2 rounded-full font-bold text-lg shadow transition-all duration-150 ${noteFilter === 'favorite' ? 'bg-yellow-400 text-white scale-105' : 'bg-white/80 text-yellow-500 border border-yellow-200 hover:bg-yellow-100 hover:scale-105'}`}
-                            onClick={() => setNoteFilter('favorite')}
-                        ><Star size={18}/> Fav</button>
+                    <div className="relative mb-3">
+                        <div
+                            className="custom-dropdown flex items-center justify-between px-4 py-2 rounded-full font-bold text-lg shadow cursor-pointer bg-[#23272a] border-2 border-blue-400 text-blue-400 hover:bg-[#36393f] transition-all duration-200 select-none min-w-[160px]"
+                            onClick={() => setShowDropdown(prev => !prev)}
+                            tabIndex={0}
+                            onBlur={() => setTimeout(() => setShowDropdown(false), 120)}
+                        >
+                            <span className="flex items-center gap-2">
+                                {noteFilter === 'all' && <><span className="dropdown-icon"><Edit3 size={16}/></span><span>All Notes</span></>}
+                                {noteFilter === 'locked' && <><span className="dropdown-icon"><Lock size={16}/></span><span>Locked</span></>}
+                                {noteFilter === 'unlocked' && <><span className="dropdown-icon"><ShieldOff size={16}/></span><span>No Lock</span></>}
+                                {noteFilter === 'favorite' && <><span className="dropdown-icon"><Star size={16}/></span><span>Fav</span></>}
+                            </span>
+                            <span className={`dropdown-arrow ml-auto transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`}><ChevronDown size={20} /></span>
+                        </div>
+                        {showDropdown && (
+                            <div className="absolute left-0 mt-2 z-30 w-full bg-[#23272a] border-2 border-blue-400 rounded-2xl shadow-xl animate-popIn overflow-hidden">
+                                <div
+                                    className={`dropdown-item flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-blue-500 hover:text-white transition-all ${noteFilter === 'all' ? 'bg-blue-500 text-white' : 'text-blue-400'}`}
+                                    onClick={() => { setNoteFilter('all'); setShowDropdown(false); }}
+                                >
+                                    <span className="dropdown-icon" style={{width: 22}}><Edit3 size={16}/></span>
+                                    <span>All Notes</span>
+                                </div>
+                                <div
+                                    className={`dropdown-item flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-blue-500 hover:text-white transition-all ${noteFilter === 'locked' ? 'bg-blue-500 text-white' : 'text-blue-400'}`}
+                                    onClick={() => { setNoteFilter('locked'); setShowDropdown(false); }}
+                                >
+                                    <span className="dropdown-icon" style={{width: 22}}><Lock size={16}/></span>
+                                    <span>Locked</span>
+                                </div>
+                                <div
+                                    className={`dropdown-item flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-blue-500 hover:text-white transition-all ${noteFilter === 'unlocked' ? 'bg-blue-500 text-white' : 'text-blue-400'}`}
+                                    onClick={() => { setNoteFilter('unlocked'); setShowDropdown(false); }}
+                                >
+                                    <span className="dropdown-icon" style={{width: 22}}><ShieldOff size={16}/></span>
+                                    <span>No Lock</span>
+                                </div>
+                                <div
+                                    className={`dropdown-item flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-yellow-400 hover:text-white transition-all ${noteFilter === 'favorite' ? 'bg-yellow-400 text-white' : 'text-yellow-500'}`}
+                                    onClick={() => { setNoteFilter('favorite'); setShowDropdown(false); }}
+                                >
+                                    <span className="dropdown-icon" style={{width: 22}}><Star size={16}/></span>
+                                    <span>Fav</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                     {/* Notes List */}
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleNoteDragEnd}>
@@ -685,7 +1088,7 @@ export default function Dashboard() {
                             {/* Title Input */}
                                 <input
                                     type="text"
-                                className="w-full text-4xl font-extrabold bg-white/70 rounded-2xl px-6 py-4 shadow-lg border-2 border-blue-100 focus:border-blue-400 outline-none transition-all duration-200 mb-2 animate-popIn placeholder:italic placeholder:text-blue-200"
+                                className="w-full text-4xl font-400 bg-white/70 rounded-2xl px-6 py-4 shadow-lg border-2 border-blue-100 focus:border-blue-400 outline-none transition-all duration-200 mb-2 animate-popIn placeholder:italic placeholder:text-blue-200 sidebar-search "
                                     placeholder="Note Title"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
@@ -695,18 +1098,18 @@ export default function Dashboard() {
                             {/* Tags */}
                             <div className="flex flex-wrap items-center gap-2 mb-2 animate-fadeIn">
                                         {(currentNote.tags || []).map(tag => (
-                                    <span key={tag} className="flex items-center gap-1 px-4 py-2 rounded-full font-semibold text-white shadow bg-gradient-to-r from-blue-400 to-blue-600 animate-popIn">
+                                    <span key={tag} className="flex items-center gap-1 px-4 py-2 rounded-full font-semibold text-white shadow bg-gradient-to-r from-blue-400 to-blue-600 animate-popIn ">
                                         <Tag size={16} className="opacity-80" />
                                         <span>{tag}</span>
                                         <button onClick={() => handleRemoveTag(tag)} className="ml-1 bg-white/30 hover:bg-pink-500 hover:text-white rounded-full p-1 transition-all"><XCircle size={15}/></button>
                                             </span>
                                         ))}
                                 {/* Tag input */}
-                                <div className="relative">
-                                    <div className="flex items-center gap-2 bg-white/70 border-2 border-blue-100 rounded-full px-4 py-2 shadow-inner">
+                                <div className="relative ">
+                                    <div className="flex items-center gap-2 bg-[#23272a] rounded-full px-4 py-2 shadow-inner  ">
                                         <Tag size={16} className="opacity-70" />
                                             <input
-                                            className={`bg-transparent outline-none text-blue-700 font-semibold w-28 placeholder:text-blue-300 ${tagError ? 'text-pink-500' : ''}`}
+                                            className={`bg-transparent outline-none text-blue-700 font-semibold w-28 placeholder:text-blue-300  ${tagError ? 'text-pink-500' : ''}`}
                                                 type="text"
                                                 placeholder="Add tag..."
                                                 value={tagInput}
@@ -737,7 +1140,7 @@ export default function Dashboard() {
                                     </div>
                                     {/* Tag suggestions dropdown */}
                                             {showSuggestions && tagSuggestions.length > 0 && (
-                                        <div className="absolute left-0 mt-2 z-20 bg-white rounded-xl shadow-lg border border-blue-100 w-48 animate-popIn">
+                                        <div className="absolute left-0 mt-2 z-20 bg-[#] rounded-xl shadow-lg border border-blue-100 w-48 animate-popIn">
                                                     {tagSuggestions.map((sugg, idx) => (
                                                         <div
                                                             key={sugg}
@@ -754,7 +1157,7 @@ export default function Dashboard() {
                             </div>
                             {/* Toolbar */}
                             {canEdit && editor && (
-                                <div className="flex items-center gap-3 bg-white/70 border-2 border-blue-100 rounded-2xl px-6 py-3 shadow-lg mb-2 animate-popIn sticky top-0 z-20">
+                                <div className="flex items-center gap-3 bg-[#23272a] rounded-2xl px-6 py-3 shadow-lg mb-2 animate-popIn sticky top-0 z-20">
                                     <button onClick={() => editor.chain().focus().toggleBold().run()} className={`text-xl p-2 rounded-full transition-all ${editor.isActive('bold') ? 'bg-blue-500 text-white scale-110' : 'hover:bg-blue-700 text-white'}`} title="Bold (Ctrl+B)"><Bold size={20}/></button>
                                     <button onClick={() => editor.chain().focus().toggleItalic().run()} className={`text-xl p-2 rounded-full transition-all ${editor.isActive('italic') ? 'bg-blue-500 text-white scale-110' : 'hover:bg-blue-700 text-white'}`} title="Italic (Ctrl+I)"><Italic size={20}/></button>
                                     <button onClick={() => editor.chain().focus().toggleUnderline().run()} className={`text-xl p-2 rounded-full transition-all ${editor.isActive('underline') ? 'bg-blue-500 text-white scale-110' : 'hover:bg-blue-700 text-white'}`} title="Underline (Ctrl+U)"><Underline size={20}/></button>
@@ -766,15 +1169,15 @@ export default function Dashboard() {
                                     </div>
                                 )}
                             {/* Editor Area */}
-                            <div className="relative flex-1 flex flex-col animate-fadeIn">
+                            <div className="relative flex-1 flex flex-col animate-fadeIn bg-[#23272a] rounded-[10px]">
                                 {/* Markdown Preview */}
                                 {showMarkdown ? (
-                                    <div className="w-full min-h-[300px] bg-white/80 border-2 border-blue-100 rounded-2xl p-6 shadow-inner text-lg font-mono text-blue-900 overflow-auto animate-popIn prose max-w-none">
+                                    <div className="w-full min-h-[300px] bg-white/80 border-2 border-blue-100 rounded-2xl p-6 shadow-inner text-lg font-mono border text-blue-900 overflow-auto animate-popIn prose max-w-none">
                                         {/* Use a markdown parser if available, else fallback to raw HTML */}
                                         <div dangerouslySetInnerHTML={{ __html: editor ? editor.getHTML() : '' }} />
                                     </div>
                                 ) : (
-                                    <EditorContent editor={editor} className="tiptap-editor w-full min-h-[300px] flex-1 bg-white/80 border-2 border-blue-100 rounded-2xl p-6 shadow-inner text-lg text-blue-900 outline-none focus:ring-4 focus:ring-blue-200 transition-all duration-200 animate-popIn" />
+                                    <EditorContent editor={editor} className="tiptap-editor w-full min-h-[300px] flex-1 bg-[#23272a] rounded-2xl p-6 shadow-inner text-lg text-blue-900 outline-none focus:ring-4 focus:ring-blue-200 transition-all duration-200 animate-popIn" />
                                 )}
                                 {/* Word/char counter */}
                                 <div className="flex items-center justify-end gap-4 mt-2 text-xs text-gray-400 font-semibold animate-fadeIn">

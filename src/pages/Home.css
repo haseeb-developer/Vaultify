@@ -3,6 +3,10 @@
     max-width: 1200px;
 }
 
+hero {
+    background-color: #323339;
+}
+
 /* Hero Section */
 .hero-section {
     text-align: center;

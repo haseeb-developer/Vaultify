@@ -1,51 +1,168 @@
-:root {
-  --header-bg: rgba(255,255,255,0.85);
-  --header-border: #e3e6ea;
-  --header-font: 'Inter', 'Roboto', 'Segoe UI', Arial, sans-serif;
-  --header-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
-  --header-radius: 2.5rem;
-  --neon: 0 0 12px #4f8cff, 0 0 24px #4f8cff99;
-  --nav-underline: linear-gradient(90deg, #4f8cff 0%, #a5b4fc 100%);
-  --accent-color: #4f8cff;
-  --accent-color-dark: #90aaff;
-  --text-secondary: #6b7280;
+/* Discord-inspired dark theme for Header */
+
+.header {
+  width: 100%;
+  padding: 0.75rem 2.5rem;
+  background: #2c2d32;
+  box-shadow: 0 2px 8px 0 #18191c;
+  border-bottom: 1.5px solid #1a1b1e;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  animation: floatIn 1.2s cubic-bezier(.23,1.01,.32,1) 0s 1;
 }
 
-.light {
-  --header-bg: rgba(255,255,255,0.85);
-  --header-border: #e3e6ea;
-  --nav-underline: linear-gradient(90deg, #4f8cff 0%, #a5b4fc 100%);
-  --accent-color: #4f8cff;
-  --text-secondary: #6b7280;
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+.header-logo-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: #fff;
+  text-decoration: none;
+  text-shadow: 0 0 8px #5865f2, 0 0 16px #23272a;
+  transition: text-shadow 0.2s;
+}
+.header-logo-link:hover {
+  text-shadow: 0 0 16px #5865f2, 0 0 32px #23272a;
+}
+.header-logo-icon {
+  color: #5865f2;
+  animation: spinGlow 3.5s linear infinite;
+}
+.header-logo-text {
+  display: inline-block;
+  background: linear-gradient(90deg, #5865f2 0%, #5865f2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+  animation: neonPulse 2.5s infinite alternate;
 }
 
-.dark {
-  --header-bg: rgba(24,27,34,0.85);
-  --header-border: #23272f;
-  --nav-underline: linear-gradient(90deg, #90aaff 0%, #23272f 100%);
-  --accent-color: #90aaff;
-  --text-secondary: #bfcfff;
+.header-center {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 3rem;
+  justify-content: space-between;
+}
+
+.header-nav {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1.5rem;
+}
+.header-link {
+  position: relative;
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #b9bbbe;
+  background: transparent;
+  text-decoration: none;
+  transition: background 0.18s, color 0.18s;
+  overflow: hidden;
+}
+.header-link:hover, .header-link:focus {
+  background: #36393f;
+  color: #fff;
+}
+.header-link-text {
+  position: relative;
+  z-index: 2;
+}
+.header-link-underline {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 3px;
+  background: #5865f2;
+  border-radius: 2px;
+  transition: width 0.3s;
+  z-index: 1;
+}
+.header-link:hover .header-link-underline, .header-link:focus .header-link-underline {
+  width: 100%;
+}
+.header-link.active {
+  background: #5865f2;
+  color: #fff;
+}
+.header-link.active .header-link-underline {
+  width: 100%;
+  background: #fff;
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  justify-content: flex-end;
+}
+.header-user-greeting {
+  font-weight: 600;
+  color: #b9bbbe;
+  font-size: 1.1rem;
+  margin-right: 0.5rem;
+  animation: floatIn 1.2s cubic-bezier(.23,1.01,.32,1) 0s 1;
+  display: none;
+}
+@media (min-width: 640px) {
+  .header-user-greeting {
+    display: inline-block;
+  }
+}
+.header-user-avatar {
+  box-shadow: 0 0 0 2px #5865f2, 0 0 0 4px #23272a;
+  border-radius: 50%;
+  transition: box-shadow 0.2s;
+}
+.header-user-avatar:hover {
+  box-shadow: 0 0 0 3px #5865f2, 0 0 0 6px #23272a;
+}
+
+.header-auth-buttons {
+  display: flex;
+  gap: 1rem;
+}
+.header-signin-btn, .header-signup-btn {
+  padding: 0.5rem 1.5rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border-radius: 0.5rem;
+  border: none;
+  background: #5865f2;
+  color: #fff;
+  box-shadow: 0 2px 8px 0 #18191c;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.18s;
+}
+.header-signin-btn:hover, .header-signup-btn:hover {
+  background: #4752c4;
+  transform: scale(1.05);
 }
 
 @keyframes neonPulse {
-  0% { text-shadow: var(--neon); }
-  100% { text-shadow: 0 0 32px #a5b4fc, 0 0 64px #4f8cff99; }
+  0% { text-shadow: 0 0 8px #5865f2, 0 0 16px #23272a; }
+  100% { text-shadow: 0 0 24px #5865f2, 0 0 48px #23272a; }
 }
 @keyframes spinGlow {
-  0% { filter: drop-shadow(0 0 0 #4f8cff); transform: rotate(0deg); }
-  100% { filter: drop-shadow(0 0 16px #4f8cff); transform: rotate(360deg); }
+  0% { filter: drop-shadow(0 0 0 #5865f2); transform: rotate(0deg); }
+  100% { filter: drop-shadow(0 0 16px #5865f2); transform: rotate(360deg); }
 }
 @keyframes floatIn {
   0% { opacity: 0; transform: translateY(-40px) scale(0.98); }
   100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.animate-neonPulse {
-  animation: neonPulse 2.5s infinite alternate;
-}
-.animate-spinGlow {
-  animation: spinGlow 3.5s linear infinite;
-}
-.animate-fadeIn {
-  animation: floatIn 1.2s cubic-bezier(.23,1.01,.32,1) 0s 1;
 } 
