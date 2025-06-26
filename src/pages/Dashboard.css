@@ -466,6 +466,8 @@ body, .app-container, .notes-dashboard-container {
     gap: 0.7rem;
 }
 
+
+
 .action-btn {
     display: flex;
     align-items: center;

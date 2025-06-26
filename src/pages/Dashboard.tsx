@@ -396,44 +396,156 @@ const SetPasswordModal = ({ onSetPassword, onCancel }: { onSetPassword: (passwor
 };
 
 // FolderModal: add same modal enhancements
-const FolderModal = ({ onCreate, onCancel }: { onCreate: (name: string, color: string) => void; onCancel: () => void; }) => {
-    const [name, setName] = useState('');
-    const [color, setColor] = useState('#4f8cff');
-    useEffect(() => {
-        document.body.classList.add('overflow-hidden');
-        return () => document.body.classList.remove('overflow-hidden');
-    }, []);
-    return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm" aria-modal="true" role="dialog" tabIndex={-1}>
-            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative animate-popIn scale-95 opacity-0 animate-fadeInModal">
-                <button onClick={onCancel} className="absolute top-3 right-3 text-gray-400 hover:bg-blue-500 hover:text-white rounded-full p-2 transition-all duration-200 focus:ring-2 focus:ring-blue-400"><X size={20} /></button>
-                <h2 className="text-xl font-bold mb-2 text-blue-600 flex items-center"><FolderIcon size={20} className="mr-2" /> Create Folder</h2>
-                <input
-                    type="text"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    className="w-full border-b-2 border-gray-200 focus:border-blue-500 outline-none py-2 mb-4 text-lg transition-all duration-200 rounded-lg focus:bg-blue-50"
-                    placeholder="Folder name"
-                    autoFocus
-                />
-                <div className="flex items-center gap-4 my-4">
-                    <Palette size={18} className="opacity-70" />
-                    <input
-                        type="color"
-                        value={color}
-                        onChange={e => setColor(e.target.value)}
-                        className="w-10 h-10 rounded-full border-2 border-blue-200 shadow cursor-pointer"
-                        title="Pick folder color"
-                    />
-                    <span className="text-base text-gray-500">Choose color</span>
-                </div>
-                <div className="flex justify-end gap-3">
-                    <button onClick={onCancel} className="px-5 py-2 rounded-full bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 hover:scale-105 transition-all duration-200">Cancel</button>
-                    <button onClick={() => onCreate(name, color)} className="px-5 py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 hover:scale-105 transition-all duration-200" disabled={!name.trim()}>Create Folder</button>
-                </div>
-            </div>
-        </div>
-    );
+const CreateFolderModal = ({ onCreate, onCancel, existingFolders }: { onCreate: (name: string, color: string) => void; onCancel: () => void; existingFolders: Folder[] }) => {
+  const [name, setName] = useState('');
+  const [color, setColor] = useState('#4f8cff');
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    setName('');
+    setColor('#4f8cff');
+    setError(null);
+    setTimeout(() => inputRef.current?.focus(), 100);
+  }, []);
+
+  // Animated folder icon
+  const FolderAnimated = () => (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      animation: 'lockFloat 2.2s ease-in-out infinite',
+      filter: `drop-shadow(0 0 12px ${color}cc) drop-shadow(0 0 32px ${color}44)`
+    }}>
+      <FolderIcon size={38} style={{ color, filter: `drop-shadow(0 0 8px ${color})` }} />
+    </span>
+  );
+
+  const handleCreate = () => {
+    if (!name.trim()) {
+      setError('Folder name cannot be empty.');
+      return;
+    }
+    if (existingFolders.some(f => f.name.trim().toLowerCase() === name.trim().toLowerCase())) {
+      setError('A folder with this name already exists.');
+      return;
+    }
+    onCreate(name.trim(), color);
+  };
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.22, ease: 'easeInOut' }}
+        className="fixed inset-0 z-[200] flex items-center justify-center"
+        aria-modal="true"
+        role="dialog"
+        tabIndex={-1}
+        style={{
+          minHeight: '100vh',
+          background: 'rgba(10, 14, 22, 0.82)',
+          backdropFilter: 'blur(7px)',
+          WebkitBackdropFilter: 'blur(7px)',
+          fontFamily: 'Poppins, Inter, Segoe UI, Arial, sans-serif',
+        }}
+      >
+        <motion.div
+          initial={{ scale: 0.92, opacity: 0, y: 40 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.92, opacity: 0, y: 40 }}
+          transition={{ type: 'spring', stiffness: 340, damping: 30, duration: 0.32 }}
+          className="relative"
+          style={{
+            background: 'rgba(44, 47, 51, 0.92)',
+            borderRadius: '.8rem',
+            boxShadow: `0 12px 48px #18191c, 0 0 0 3px ${color}`,
+            padding: '3.2rem 2.5rem 2.7rem 2.5rem',
+            maxWidth: 520,
+            minWidth: 420,
+            width: '100%',
+            border: `2.5px solid ${color}`,
+            textAlign: 'center',
+            color: '#e3e6ea',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <button
+            onClick={onCancel}
+            className="absolute top-4 right-4 text-blue-300 hover:bg-blue-500 hover:text-white rounded-full p-2 transition-all duration-200 focus:ring-2 focus:ring-blue-400"
+            style={{ fontWeight: 700, fontSize: 22, background: 'rgba(36,39,46,0.7)' }}
+          >
+            <X size={26} />
+          </button>
+          <div className="flex flex-col items-center gap-3 mb-4">
+            <FolderAnimated />
+            <h2 className="text-3xl font-extrabold tracking-tight" style={{ color, letterSpacing: '-0.01em', marginTop: 8, marginBottom: 0 }}>
+              Create Folder
+            </h2>
+          </div>
+          <p className="mb-5 text-blue-200 text-lg font-medium" style={{ fontWeight: 500 }}>
+            Organize your notes by creating a new folder.
+          </p>
+          <div style={{ marginBottom: 18 }}>
+            <input
+              ref={inputRef}
+              type="text"
+              value={name}
+              onChange={e => { setName(e.target.value); setError(null); }}
+              maxLength={32}
+              className="w-full border-2 border-blue-400 focus:border-blue-500 outline-none py-4 px-5 mb-2 text-xl rounded-2xl bg-[#23272a] text-blue-100 placeholder:text-blue-400 transition-all duration-200 font-semibold shadow-inner"
+              placeholder="Folder name"
+              autoFocus
+              style={{
+                letterSpacing: '0.04em',
+                fontSize: 22,
+                background: 'rgba(36,39,46,0.98)',
+                boxShadow: `0 2px 12px ${color}22`,
+                borderRadius: '.8rem',
+                borderWidth: 2,
+                borderColor: color,
+                outline: 'none',
+                fontWeight: 700,
+              }}
+            />
+          </div>
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <Palette size={22} style={{ color, opacity: 0.8 }} />
+            <input
+              type="color"
+              value={color}
+              onChange={e => setColor(e.target.value)}
+              className="w-12 h-12 rounded-full border-2 border-blue-200 shadow cursor-pointer"
+              title="Pick folder color"
+              style={{ boxShadow: `0 2px 12px ${color}44`, borderColor: color }}
+            />
+            <span className="text-base text-blue-200 font-semibold">Choose color</span>
+          </div>
+          {error && (
+            <div className="mb-4 text-pink-500 text-lg font-bold animate-fadeIn" style={{ minHeight: 12 }}>{error}</div>
+          )}
+          <div className="flex justify-center gap-5 mt-2">
+            <button
+              onClick={onCancel}
+              className="px-7 py-3 rounded-full font-500 bg-gradient-to-r from-gray-700 via-gray-800 to-gray-900 text-blue-200 hover:bg-blue-900 hover:text-white shadow transition-all duration-200 border-2 border-blue-900"
+              style={{ fontSize: 20, minWidth: 120, borderRadius: '.8rem', boxShadow: '0 2px 12px #23272a', flex: '1' }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCreate}
+              className={`px-7 py-3 rounded-full font-[500] bg-gradient-to-r from-blue-500 via-blue-400 to-blue-600 text-white shadow-lg border-2 border-blue-400 hover:scale-105 active:scale-95 transition-all duration-200`}
+              style={{ fontSize: 20, minWidth: 120, borderRadius: '.8rem', boxShadow: `0 2px 16px ${color}44`, flex: '1' }}
+              disabled={!name.trim()}
+            >
+              Create Folder
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
 };
 
 // Custom Alert Modal
@@ -897,7 +1009,15 @@ export default function Dashboard() {
                     />
                 )}
             </AnimatePresence>
-            {isFolderModalOpen && <FolderModal onCreate={handleCreateFolderSubmit} onCancel={() => setIsFolderModalOpen(false)} />}
+            <AnimatePresence>
+              {isFolderModalOpen && (
+                <CreateFolderModal
+                  onCreate={handleCreateFolderSubmit}
+                  onCancel={() => setIsFolderModalOpen(false)}
+                  existingFolders={folders}
+                />
+              )}
+            </AnimatePresence>
             {showSpamAlert && <CustomAlertModal message={"DON'T SPAM NEW NOTE IF U DON'T WISH TO SAVE ANYTHING, THIS ISN'T A GAME"} onClose={() => setShowSpamAlert(false)} />}
             <div className="notes-dashboard-container flex flex-col lg:flex-row w-full h-full min-h-screen gap-0 lg:gap-6 xl:gap-10 overflow-x-hidden">
                 {/* SIDEBAR START */}
@@ -1045,8 +1165,11 @@ export default function Dashboard() {
                                         >
                                                 <span className="font-extrabold text-2xl mr-2" style={{ color: note.id === currentNoteId ? '#fff' : '#3b82f6' }}>{idx + 1}.</span>
                                                 <div className="flex-1">
-                                                    <h3 className={`flex items-center gap-1 font-bold text-lg ${note.id === currentNoteId ? 'text-white' : 'text-blue-900'}`}>{isLocked && <Lock size={16} className="lock-animated" />} {note.title}</h3>
+                                                    <h3 className={`flex items-center gap-1 font-bold text-lg ${note.id === currentNoteId ? 'text-white' : 'text-blue-900'}`}>{note.title}</h3>
                                                     <p className="text-xs text-gray-400">{new Date(note.updatedAt).toLocaleDateString()}</p>
+                                            </div>
+                                            <div className="lock-button-note">
+                                            {isLocked && <Lock size={22} className="lock-animated" />} 
                                             </div>
                                                 <button
                                                     className={`ml-2 rounded-xl p-2 shadow transition-all duration-150 ${note.isFavorite ? 'bg-yellow-400' : 'bg-gray-900'} hover:scale-110`}
