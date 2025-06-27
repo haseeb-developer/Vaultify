@@ -1291,7 +1291,7 @@ export default function Dashboard() {
                                     <button onClick={() => handleDeleteNote(currentNoteId!)} className="action-btn danger"><Trash2 size={14}/> Delete</button>
                                 </div>
                                 {/* Auto-save indicator */}
-                                <span className="text-xs font-bold px-3 py-1 rounded-full bg-gradient-to-r from-green-400 to-blue-400 text-white shadow animate-pulse">Saved</span>
+                                {/* <span className="text-xs font-bold px-3 py-1 rounded-full bg-gradient-to-r from-green-400 to-blue-400 text-white shadow animate-pulse">Saved</span> */}
                             </div>
                             {/* Title Input */}
                                 <input
