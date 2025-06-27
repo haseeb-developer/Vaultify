@@ -1312,8 +1312,8 @@ body, .app-container, .notes-dashboard-container {
 }
 
 .sidebar-search {
-  background: #23272a ;
-  border: 1.5px solid #323339 ;
+  background: #23272a !important;
+  border: 1.5px solid #323339 !important;
 }
 .sidebar-search-icon {
   color: #4f8cff !important;
