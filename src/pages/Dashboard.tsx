@@ -891,9 +891,17 @@ export default function Dashboard() {
 
     // Search notes by title and apply filter
     let filteredNotes: Note[] = notes.filter(note => {
+        // Folder filter
+        if (currentFolderId === null) {
+            if (note.folderId) return false; // Only notes NOT in a folder
+        } else {
+            if (note.folderId !== currentFolderId) return false; // Only notes in the selected folder
+        }
+        // Note filter
         if (noteFilter === 'favorite') return note.isFavorite;
         if (noteFilter === 'locked') return note.isLocked;
         if (noteFilter === 'unlocked') return !note.isLocked;
+        // Default: search by title
         return note.title.toLowerCase().includes(search.toLowerCase());
     });
     // Apply sort order
