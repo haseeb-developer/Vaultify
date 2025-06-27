@@ -998,8 +998,8 @@ body, .app-container, .notes-dashboard-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 750px;
-    max-width: 520px;
+    max-width: 800px;
+    width: 100%;
     margin: 0 auto;
     position: relative;
     animation: cardPopIn 0.5s cubic-bezier(.23,1.01,.32,1);
