@@ -1381,29 +1381,29 @@ body, .app-container, .notes-dashboard-container {
   color: #4f8cff ;
 }
 .sidebar-folder {
-  background: #2c2f33 ;
-  color: #b9bbbe ;
-  border: 2px solid #23272a ;
+  background: #2c2f33 !important;
+  color: #b9bbbe !important;
+  border: 2px solid #23272a !important;
 }
 .sidebar-folder-active {
-  background: linear-gradient(90deg, #36393f 60%, #4f8cff 100%) ;
-  color: #fff ;
-  border: 2px solid #4f8cff ;
-  transform: scale(1.03);
+  background: linear-gradient(90deg, #36393f 60%, #4f8cff 100%) !important;
+  color: #fff !important;
+  border: 2px solid #4f8cff !important;
+  transform: scale(1.03) !important;
 }
 .sidebar-folder-icon {
-  color: #4f8cff ;
+  color: #4f8cff !important;
 }
 .sidebar-folder-name {
-  color: inherit ;
+  color: inherit !important;
 }
 .sidebar-folder-count {
-  background: #4f8cff ;
-  color: #fff ;
+  background: #4f8cff !important;
+  color: #fff !important;
 }
 .sidebar-folder-action {
-  background: #23272a ;
-  border: none ;
+  background: #23272a !important;
+  border: none !important;
   border-radius: 50%;
   padding: 0.5rem ;
   color: #4f8cff ;

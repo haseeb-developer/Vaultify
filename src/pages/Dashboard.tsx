@@ -1060,10 +1060,10 @@ export default function Dashboard() {
                     {/* Folders List */}
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleFolderDragEnd}>
                         <SortableContext items={folders.map(f => f.id)} strategy={verticalListSortingStrategy}>
-                            <div className="flex flex-col gap-3">
+                            <div className="flex flex-col gap-3 ">
                                 {/* Other Notes */}
                         <div
-                                    className={`group relative flex items-center gap-3 min-h-[60px] rounded-2xl px-5 py-3 cursor-pointer shadow-md border-2 transition-all duration-200 ${currentFolderId === null ? 'bg-gradient-to-r from-blue-900 to-blue-300 text-white border-blue-500 scale-[1.03]' : 'bg-white/80 border-blue-100 hover:scale-105 sidebar-folder'}`}
+                                    className={`group relative flex items-center gap-3 min-h-[60px] rounded-[10px] px-5 py-3 cursor-pointer shadow-md border-2 transition-all duration-200 ${currentFolderId === null ? 'bg-gradient-to-r from-blue-900 to-blue-300 text-white border-blue-500 scale-[1.03]' : 'border-blue-100 hover:scale-105 sidebar-folder'}`}
                             onClick={() => setCurrentFolderId(null)}
                                 >
                                     <FolderIcon size={24} className={`mr-2 ${currentFolderId === null ? 'text-white' : 'text-blue-400'}`} />
@@ -1074,7 +1074,7 @@ export default function Dashboard() {
                         {folders.map(folder => (
                             <div
                                 key={folder.id}
-                                        className={`group relative flex items-center gap-3 min-h-[60px] rounded-2xl px-5 py-3 cursor-pointer shadow-md border-2 transition-all duration-200 ${currentFolderId === folder.id ? 'bg-gradient-to-r from-[#3b9ac4] to-blue-900 text-blue-900 border-blue-900 scale-[1.02]' : 'bg-white/80 border-blue-100 hover:scale-105 sidebar-folder'}`}
+                                        className={`group relative flex items-center gap-3 min-h-[60px] rounded-[10px] px-5 py-3 cursor-pointer shadow-md border-2 transition-all duration-200 ${currentFolderId === folder.id ? 'bg-gradient-to-r from-[#3b9ac4] to-blue-900 text-blue-900 border-blue-900 scale-[1.02]' : 'bg-white/80  border-blue-100 hover:scale-105 sidebar-folder'}`}
                                 onClick={() => setCurrentFolderId(folder.id)}
                                         style={{ borderLeft: `8px solid ${folder.color}` }}
                                     >
