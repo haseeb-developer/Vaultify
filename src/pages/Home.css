@@ -228,7 +228,7 @@
   color: #bfdbfe; /* blue-200 */
 }
 
-#editor-main {
+.editor-main {
   flex: 1;
   width: 100%;
   min-width: 0;
@@ -245,25 +245,25 @@
 }
 
   @media (min-width: 1024px) {
-    #editor-main {
+    .editor-main {
      border-radius: 1.5rem;
     }
   }
 
   @media (min-width: 640px) {
-    #editor-main {
+    .editor-main {
        padding: 1rem;
     }
   }
 
   @media (min-width: 768px) {
-    #editor-main {
+    .editor-main {
      padding: 1.5rem;
     }
   }
 
   @media (min-width: 1280px) {
-    #editor-main {
+    .editor-main {
      padding: 2rem;
     }
   }
