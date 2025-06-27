@@ -430,16 +430,16 @@ body, .app-container, .notes-dashboard-container {
 
 /* Editor Main Area */
 .editor-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    background: #36373e;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    border: none;
-    overflow: hidden;
-    min-width: 0;
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    background: #36373e !important;
+    border-radius: var(--radius) !important;
+    box-shadow: var(--shadow) !important;
+    border: none !important;
+    overflow: hidden !important;
+    min-width: 0 !important;
 }
 
 .editor-header {
@@ -1316,69 +1316,70 @@ body, .app-container, .notes-dashboard-container {
   border: 1.5px solid #323339 ;
 }
 .sidebar-search-icon {
-  color: #4f8cff ;
+  color: #4f8cff !important;
 }
 .sidebar-search-input {
-  color: #e3e6ea ;
-  background: #23272a ;
-  border: none ;
+  color: #e3e6ea !important;
+  background: #23272a !important;
+  border: none !important;
 }
 .sidebar-search-input::placeholder {
-  color: #6b7280 ;
+  color: #6b7280 !important;
   opacity: 0.7;
 }
 .sidebar-folders-title, .sidebar-notes-title {
-  color: #4f8cff ;
+  color: #4f8cff !important;
 }
 .sidebar-folders-icon, .sidebar-notes-icon {
-  color: #4f8cff ;
+  color: #4f8cff !important;
 }
 .sidebar-btn {
-  background: #2c2f33 ;
-  color: #e3e6ea ;
-  border: 1.5px solid #4f8cff ;
+  background: #2c2f33 !important;
+  color: #e3e6ea !important;
+  border: 1.5px solid #4f8cff !important;
   border-radius: 1.5rem;
   font-weight: 700;
   transition: background 0.18s, color 0.18s, border 0.18s;
 }
+
 .sidebar-btn:hover {
-  background: #4f8cff ;
+  background: #4f8cff !important;
   color: #fff ;
 }
 .sidebar-btn-active {
-  background: #4f8cff ;
-  color: #fff ;
-  border-color: #4f8cff ;
+  background: #4f8cff !important;
+  color: #fff !important;
+  border-color: #4f8cff !important;
 }
 .sidebar-btn-fav-active {
-  background: #ffd600 ;
-  color: #23272a ;
-  border-color: #ffd600 ;
+  background: #ffd600 !important;
+  color: #23272a !important;
+  border-color: #ffd600 !important;
 }
 .sidebar-other-notes {
-  background: #23272a ;
-  color: #e3e6ea ;
-  border: 2px solid #4f8cff ;
+  background: #23272a !important;
+  color: #e3e6ea !important;
+  border: 2px solid #4f8cff !important;
 }
 .sidebar-other-notes-active {
-  background: linear-gradient(90deg, #36393f 60%, #4f8cff 100%) ;
-  color: #fff ;
-  border: 2px solid #4f8cff ;
-  transform: scale(1.03);
+  background: linear-gradient(90deg, #36393f 60%, #4f8cff 100%) !important;
+  color: #fff !important;
+  border: 2px solid #4f8cff !important;
+  transform: scale(1.03) !important;
 }
 .sidebar-other-notes-icon {
-  color: #4f8cff ;
+  color: #4f8cff !important;
 }
 .sidebar-other-notes-icon-active {
-  color: #fff ;
+  color: #fff !important;
 }
 .sidebar-other-notes-count {
-  background: #4f8cff ;
-  color: #fff ;
+  background: #4f8cff !important;
+  color: #fff !important;
 }
 .sidebar-other-notes-count-active {
-  background: #fff ;
-  color: #4f8cff ;
+  background: #fff !important;
+  color: #4f8cff !important;
 }
 .sidebar-folder {
   background: #2c2f33 !important;

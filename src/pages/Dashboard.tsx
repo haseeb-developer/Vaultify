@@ -1043,7 +1043,7 @@ export default function Dashboard() {
                 <aside className="w-full bg-[#36373e] lg:w-[370px] xl:w-[400px] flex-shrink-0 border-0 shadow-2xl rounded-b-3xl lg:rounded-3xl p-4 sm:p-6 flex flex-col gap-6 relative z-10 overflow-y-auto max-h-[90vh] lg:max-h-[calc(100vh-40px)] min-h-[0]">
                     {/* Search */}
                     <div className="flex items-center gap-3 sidebar-search bg-white/70 rounded-xl shadow-inner px-4 py-3 mb-2 border border-blue-100/60">
-                        <Search size={22} className="text-blue-400 sidebar-search-icon" />
+                        <Search size={22} className="text-blue-400 sidebar-search-icon " />
                     <input
                         type="text"
                         placeholder="Search notes by title..."
