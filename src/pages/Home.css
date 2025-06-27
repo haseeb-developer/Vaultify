@@ -111,6 +111,7 @@
     background: linear-gradient(90deg, #3b82f6 0%, #10b981 100%);
     -webkit-background-clip: text;
     background-clip: text;
+    text-align: center !important;
     color: transparent;
   }
   
