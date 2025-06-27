@@ -461,8 +461,8 @@ const CreateFolderModal = ({ onCreate, onCancel, existingFolders }: { onCreate: 
             borderRadius: '.8rem',
             boxShadow: `0 12px 48px #18191c, 0 0 0 3px ${color}`,
             padding: '3.2rem 2.5rem 2.7rem 2.5rem',
-            maxWidth: 520,
-            minWidth: 420,
+            maxWidth: 720,
+            minWidth: 620,
             width: '100%',
             border: `2.5px solid ${color}`,
             textAlign: 'center',
@@ -480,7 +480,7 @@ const CreateFolderModal = ({ onCreate, onCancel, existingFolders }: { onCreate: 
           </button>
           <div className="flex flex-col items-center gap-3 mb-4">
             <FolderAnimated />
-            <h2 className="text-3xl font-extrabold tracking-tight" style={{ color, letterSpacing: '-0.01em', marginTop: 8, marginBottom: 0 }}>
+            <h2 className="text-3xl font-400 tracking-tight" style={{ color, letterSpacing: '-0.01em', marginTop: 8, marginBottom: 0 }}>
               Create Folder
             </h2>
           </div>
@@ -506,20 +506,42 @@ const CreateFolderModal = ({ onCreate, onCancel, existingFolders }: { onCreate: 
                 borderWidth: 2,
                 borderColor: color,
                 outline: 'none',
-                fontWeight: 700,
+                fontWeight: 400,
               }}
             />
           </div>
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <Palette size={22} style={{ color, opacity: 0.8 }} />
+          <div className="flex items-center gap-4 mb-6">
+           
                     <input
                         type="color"
                         value={color}
                         onChange={e => setColor(e.target.value)}
-              className="w-12 h-12 rounded-full border-2 border-blue-200 shadow cursor-pointer"
+              className="w-12 h-12 color-picker-circle cursor-pointer"
                         title="Pick folder color"
-              style={{ boxShadow: `0 2px 12px ${color}44`, borderColor: color }}
+              style={{
+                appearance: 'none',
+                WebkitAppearance: 'none',
+                border: `3px solid ${color}`,
+                borderRadius: '10%',
+                boxShadow: `0 0 0 4px ${color}33, 0 2px 12px ${color}22`,
+                background: color,
+                outline: 'none',
+                padding: 0,
+                margin: 0,
+                width: '48px',
+                height: '48px',
+                display: 'inline-block',
+                transition: 'box-shadow 0.2s',
+              }}
+              
+              // Remove default color input styles for Webkit/Blink
+              /* Add this to your CSS file:
+              .color-picker-circle::-webkit-color-swatch-wrapper { padding: 0; border-radius: 50%; }
+              .color-picker-circle::-webkit-color-swatch { border: none; border-radius: 50%; }
+              .color-picker-circle { border-radius: 50%; overflow: hidden; }
+              */
                     />
+                     <Palette size={22} style={{ color, opacity: 0.8 }} />
             <span className="text-base text-blue-200 font-semibold">Choose color</span>
                 </div>
           {error && (
@@ -1040,7 +1062,7 @@ export default function Dashboard() {
             {showSpamAlert && <CustomAlertModal message={"DON'T SPAM NEW NOTE IF U DON'T WISH TO SAVE ANYTHING, THIS ISN'T A GAME"} onClose={() => setShowSpamAlert(false)} />}
             <div className="notes-dashboard-container flex flex-col lg:flex-row w-full h-full min-h-screen gap-0 lg:gap-6 xl:gap-10 overflow-x-hidden">
                 {/* SIDEBAR START */}
-                <aside className="w-full bg-[#36373e] lg:w-[370px] xl:w-[400px] flex-shrink-0 border-0 shadow-2xl rounded-b-3xl lg:rounded-3xl p-4 sm:p-6 flex flex-col gap-6 relative z-10 overflow-y-auto max-h-[90vh] lg:max-h-[calc(100vh-40px)] min-h-[0]">
+                <aside className="w-full bg-[#36373e] lg:w-[370px] xl:w-[400px] flex-shrink-0 border-0 shadow-2xl rounded-b-3xl lg:rounded-3xl p-4 sm:p-6 flex flex-col gap-6 relative z-10 overflow-y-auto max-h-[90vh] lg:max-h-[calc(100vh-40px)] min-h-[0] mt-[90px]">
                     {/* Search */}
                     <div className="flex items-center gap-3 sidebar-search bg-white/70 rounded-xl shadow-inner px-4 py-3 mb-2 border border-blue-100/60">
                         <Search size={22} className="text-blue-400 sidebar-search-icon " />
@@ -1053,7 +1075,7 @@ export default function Dashboard() {
                     />
                 </div>
                     {/* Folders Header */}
-                    <div className="flex items-center justify-between mb-1 ">
+                    <div className="flex items-center justify-between mb-1 separate-part">
                         <h2 className="text-2xl font-[300] text-[#9b9ca3] flex items-center gap-2 tracking-tight"><FolderIcon size={26} className="text-blue-400 " />Folders</h2>
                         <button onClick={handleCreateFolder} className="action-btn px-5 py-2 flex items-center gap-2 shadow-lg hover:scale-105 active:scale-95 transition-all "><Plus size={20}/> New Folder</button>
                     </div>
@@ -1100,7 +1122,7 @@ export default function Dashboard() {
                         </SortableContext>
                     </DndContext>
                     {/* Notes Header */}
-                    <div className="flex items-center justify-between mt-6 mb-1 ">
+                    <div className="flex items-center justify-between mb-1 separate-part">
                         <h2 className="text-2xl font-[400] text-[#9b9ca3] flex items-center gap-2"><Edit3 size={24} className="text-blue-400" />Notes</h2>
                         <button
                             onClick={handleNewNote}
@@ -1249,7 +1271,7 @@ export default function Dashboard() {
                     </DndContext>
                 </aside>
                 {/* SIDEBAR END */}
-                <main className="editor-main flex-1 w-full min-w-0 bg-gradient-to-br from-white via-blue-50 to-blue-100 rounded-t-3xl lg:rounded-3xl shadow-2xl p-2 sm:p-4 md:p-6 xl:p-8 flex flex-col gap-6 animate-fadeIn overflow-x-auto">
+                <main className="editor-main flex-1 w-full min-w-0 bg-gradient-to-br from-white via-blue-50 to-blue-100 rounded-t-3xl lg:rounded-3xl shadow-2xl p-2 sm:p-4 md:p-6 xl:p-8 flex flex-col gap-6 animate-fadeIn overflow-x-auto ">
                     {currentNote ? (
                         <>
                             {/* Header Info and Actions */}

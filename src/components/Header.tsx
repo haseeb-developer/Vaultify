@@ -27,7 +27,7 @@ export default function Header() {
               <span className="header-link-underline"></span>
             </Link>
             <Link to="/profile" className={`header-link${location.pathname.startsWith('/profile') ? ' active' : ''}`}>
-              <span className="header-link-text">Profile</span>
+              <span className="header-link-text">Settings & Profile</span>
               <span className="header-link-underline"></span>
             </Link>
           </SignedIn>

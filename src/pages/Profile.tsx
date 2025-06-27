@@ -65,12 +65,17 @@ export default function Profile() {
   // Modal states
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleteAllNotesModalOpen, setIsDeleteAllNotesModalOpen] = useState(false);
 
   // --- New state for activity tracking ---
   const [activeCount, setActiveCount] = useState<number>(0);
   const [latestVisitors, setLatestVisitors] = useState<any[]>([]);
   const [activityLoading, setActivityLoading] = useState(true);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Add state for new modals
+  const [isDeleteLockedFavModalOpen, setIsDeleteLockedFavModalOpen] = useState(false);
+  const [isDeleteAllLiterallyModalOpen, setIsDeleteAllLiterallyModalOpen] = useState(false);
 
   // --- Post activity on mount ---
   useEffect(() => {
@@ -206,6 +211,61 @@ export default function Profile() {
       toast.error('Failed to sign out');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDeleteAllNotes = async () => {
+    if (!user) return;
+    setIsLoading(true);
+    try {
+      const notes = user?.unsafeMetadata.notes as any[] || [];
+      // Only keep notes that are locked or favorite
+      const filteredNotes = notes.filter(n => n.isLocked || n.isFavorite);
+      await user.update({ unsafeMetadata: { ...user.unsafeMetadata, notes: filteredNotes } });
+      toast.success('All unlocked and non-favorite notes deleted.');
+    } catch (error) {
+      toast.error('Failed to delete notes.');
+    } finally {
+      setIsLoading(false);
+      setIsDeleteAllNotesModalOpen(false);
+    }
+  };
+
+  // Add a computed variable to determine if there are any deletable notes
+  const deletableNotes = (notes || []).filter(n => !n.isLocked && !n.isFavorite);
+  const deletableNotesExist = deletableNotes.length > 0;
+
+  // Add state for tooltip at the top of the Profile component
+  const [showDeleteTooltip, setShowDeleteTooltip] = useState(false);
+
+  // Add handlers for new buttons at the top of the Profile component
+  const handleDeleteLockedFavNotes = async () => {
+    if (!user) return;
+    setIsLoading(true);
+    try {
+      const notes = user?.unsafeMetadata.notes as any[] || [];
+      // Only keep notes that are NOT locked and NOT favorite
+      const filteredNotes = notes.filter(n => !n.isLocked && !n.isFavorite);
+      await user.update({ unsafeMetadata: { ...user.unsafeMetadata, notes: filteredNotes } });
+      toast.success('All locked and favorite notes deleted.');
+    } catch (error) {
+      toast.error('Failed to delete locked/favorite notes.');
+    } finally {
+      setIsLoading(false);
+      setIsDeleteLockedFavModalOpen(false);
+    }
+  };
+  const handleDeleteAllLiterally = async () => {
+    if (!user) return;
+    setIsLoading(true);
+    try {
+      await user.update({ unsafeMetadata: { notes: [], folders: [] } });
+      toast.success('All notes and folders deleted. Data reset.');
+    } catch (error) {
+      toast.error('Failed to delete all data.');
+    } finally {
+      setIsLoading(false);
+      setIsDeleteAllLiterallyModalOpen(false);
     }
   };
 
@@ -450,6 +510,137 @@ export default function Profile() {
           )}
         </div>
       </div>
+
+      {/* Security Audit Log */}
+      <div className="security-section danger-zone" style={{
+        border: '2px solid #ef4444',
+        background: 'linear-gradient(90deg, #18181b 0%, #23272a 100%)',
+        borderRadius: 16,
+        marginTop: 40,
+        marginBottom: 40,
+        padding: 32,
+        boxShadow: '0 2px 16px #ef444422',
+        position: 'relative',
+        maxWidth: "100%",
+        marginLeft: 'auto',
+        marginRight: 'auto',
+      }}>
+        <h2 style={{ color: '#ef4444', fontWeight: 900, letterSpacing: 1, marginBottom: 18, textTransform: 'uppercase', fontSize: 22, display: 'flex', alignItems: 'center' }}>
+          <AlertTriangle size={28} style={{ marginRight: 10, verticalAlign: 'middle' }} /> DANGER ZONE
+        </h2>
+        <div>
+          <h3 style={{ color: '#ef4444', fontWeight: 700, fontSize: 20, marginBottom: 8 }}>Delete All Notes</h3>
+          <p style={{ color: '#fca5a5', fontWeight: 600, marginBottom: 8 }}>
+            This action will permanently delete all your notes except the ones you've locked or marked as favorites.
+            <span style={{ color: '#fde68a', fontWeight: 500, display: 'block', marginTop: 4 }}>
+              Because of our top-tier security and privacy measures, locked and favorite notes stay untouched — your data stays protected, always.
+            </span>
+          </p>
+          <div style={{ position: 'relative', display: 'inline-block', marginBottom: 24 }}>
+            <button
+              className="security-action-btn destructive mt-3"
+              style={{ marginBottom: 12, fontWeight: 700, fontSize: 18, padding: '12px 32px', borderRadius: 8, border: '2px solid #ef4444', background: '#ef4444', color: '#fff', boxShadow: '0 2px 8px #ef444422', transition: 'background 0.2s', letterSpacing: 1 }}
+              onClick={() => setIsDeleteAllNotesModalOpen(true)}
+              disabled={isLoading || !deletableNotesExist}
+              onMouseEnter={() => setShowDeleteTooltip(true)}
+              onMouseLeave={() => setShowDeleteTooltip(false)}
+              onFocus={() => setShowDeleteTooltip(true)}
+              onBlur={() => setShowDeleteTooltip(false)}
+              aria-describedby="delete-notes-tooltip"
+            >
+              Delete All Unlocked & Non-Favorite Notes
+            </button>
+            {/* Tooltip */}
+            {(showDeleteTooltip || document.activeElement === document.getElementById('delete-notes-btn')) && (
+              <div
+                id="delete-notes-tooltip"
+                style={{
+                  position: 'absolute',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  bottom: 'calc(100% + 10px)',
+                  background: '#23272a',
+                  color: '#fff',
+                  padding: '10px 18px',
+                  borderRadius: 8,
+                  fontSize: 15,
+                  fontWeight: 600,
+                  boxShadow: '0 2px 12px #18181b99',
+                  whiteSpace: 'nowrap',
+                  zIndex: 100,
+                  pointerEvents: 'none',
+                  opacity: 0.97,
+                }}
+                role="tooltip"
+              >
+                {deletableNotesExist
+                  ? `${deletableNotes.length} active note${deletableNotes.length > 1 ? 's' : ''} will be deleted. Click to proceed.`
+                  : `No unlocked or non-favorite notes available to delete. Only notes that are not locked and not marked as favorite can be deleted in bulk.`}
+              </div>
+            )}
+          </div>
+          {/* Delete Locked & Favorite Notes Button */}
+          <div style={{ position: 'relative', display: 'inline-block', marginBottom: 24 }}>
+            <button
+              className="security-action-btn destructive mt-3"
+              style={{ marginBottom: 12, fontWeight: 700, fontSize: 18, padding: '12px 32px', borderRadius: 8, border: '2px solid #f59e42', background: '#f59e42', color: '#fff', boxShadow: '0 2px 8px #f59e4244', transition: 'background 0.2s', letterSpacing: 1 }}
+              onClick={() => setIsDeleteLockedFavModalOpen(true)}
+              disabled={isLoading || !notes.some(n => n.isLocked || n.isFavorite)}
+            >
+              Delete All Locked & Favorite Notes
+            </button>
+            <div style={{ color: '#f59e42', fontWeight: 500, fontSize: 14, marginTop: 2, marginBottom: 8 }}>
+              This will permanently delete all notes that are either locked or marked as favorite. Unlocked and non-favorite notes will remain.
+            </div>
+          </div>
+          {/* Delete Everything Button */}
+          <div style={{ position: 'relative', display: 'inline-block', marginBottom: 24 }}>
+            <button
+              className="security-action-btn destructive mt-3"
+              style={{ marginBottom: 12, fontWeight: 700, fontSize: 18, padding: '12px 32px', borderRadius: 8, border: '2px solid #b91c1c', background: '#b91c1c', color: '#fff', boxShadow: '0 2px 8px #b91c1c44', transition: 'background 0.2s', letterSpacing: 1 }}
+              onClick={() => setIsDeleteAllLiterallyModalOpen(true)}
+              disabled={isLoading || (notes.length === 0 && (!Array.isArray(user?.unsafeMetadata.folders) || user.unsafeMetadata.folders.length === 0))}
+            >
+              DELETE ALL LITERALLY (Reset Everything)
+            </button>
+            <div style={{ color: '#b91c1c', fontWeight: 600, fontSize: 15, marginTop: 2, marginBottom: 8 }}>
+              <b>Warning:</b> This will permanently delete <u>all your notes and folders</u>. This action cannot be undone. You will lose all your data.
+            </div>
+          </div>
+        </div>
+      </div>
+      <ConfirmationModal
+        isOpen={isDeleteAllNotesModalOpen}
+        onClose={() => setIsDeleteAllNotesModalOpen(false)}
+        onConfirm={handleDeleteAllNotes}
+        title="Delete All Notes?"
+        message="Are you sure you want to delete all unlocked and non-favorite notes? This action cannot be undone. Locked and favorite notes will be kept."
+        confirmText="Delete All"
+        cancelText="Cancel"
+        isDestructive={true}
+      />
+
+      {/* Confirmation Modals for new buttons */}
+      <ConfirmationModal
+        isOpen={isDeleteLockedFavModalOpen}
+        onClose={() => setIsDeleteLockedFavModalOpen(false)}
+        onConfirm={handleDeleteLockedFavNotes}
+        title="Delete All Locked & Favorite Notes?"
+        message="Are you sure you want to delete all notes that are locked or marked as favorite? This cannot be undone."
+        confirmText="Delete Locked & Favorite"
+        cancelText="Cancel"
+        isDestructive={true}
+      />
+      <ConfirmationModal
+        isOpen={isDeleteAllLiterallyModalOpen}
+        onClose={() => setIsDeleteAllLiterallyModalOpen(false)}
+        onConfirm={handleDeleteAllLiterally}
+        title="Delete Everything? (Reset Data)"
+        message="This will permanently delete ALL your notes and folders. You will lose all your data. This cannot be undone. Are you absolutely sure?"
+        confirmText="Delete Everything"
+        cancelText="Cancel"
+        isDestructive={true}
+      />
 
       <div className="clerk-profile-wrapper">
          <UserProfile path="/profile" routing="path" />

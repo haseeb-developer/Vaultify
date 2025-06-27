@@ -1,6 +1,8 @@
 /* Discord-inspired dark theme for Header */
 
 .header {
+  position: sticky;
+  top: 0;
   width: 100%;
   padding: 0.75rem 2.5rem;
   background: #2c2d32;
