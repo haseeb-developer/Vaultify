@@ -62,25 +62,27 @@ body, .app-container, .notes-dashboard-container {
     color: var(--text-primary);
 }
 
-/* Fixed sidebar/aside layout */
+/* Remove fixed/absolute/sticky positioning and 100vh heights from sidebar and main content */
+
 .notes-dashboard-container {
     display: flex;
     flex-direction: row;
     width: 100vw;
     height: 100vh;
-    min-height: 100vh;
-    max-height: 100vh;
+    min-height: 0;
+    max-height: none;
     overflow: hidden;
 }
 .notes-dashboard-container > aside {
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100vh;
-    min-height: 100vh;
-    max-height: 100vh;
-    width: 370px;
-    z-index: 20;
+    position: relative;
+    left: unset;
+    top: unset;
+    margin-top: 0;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    width: 420px;
+    z-index: 1;
     overflow-y: auto;
     border-right: 2px solid var(--sidebar-border);
     background: var(--sidebar-bg);
@@ -100,31 +102,18 @@ body, .app-container, .notes-dashboard-container {
 }
 .editor-main {
     flex: 1 1 0%;
-    margin-left: 370px;
+    margin-left: 0;
     min-width: 0;
-    min-height: 100vh;
-    max-height: 100vh;
+    gap: 0;
+    min-height: 0;
+    max-height: none;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-}
-@media (max-width: 1024px) {
-    .editor-main {
-        margin-left: 0;
-        min-height: 0;
-        max-height: none;
-    }
+    height: 100%;
 }
 
-.tiptap.ProseMirror {
-    border: 1px solid #403e3e;
-    height: 50vh;
-    color: #fff;
-    border-radius: 10px;
-    padding: 0 20px;
-}
-
-/* Sidebar */
+/* Remove fixed/sticky from dashboard-sidebar */
 .dashboard-sidebar {
     width: 340px;
     min-width: 220px;
@@ -135,11 +124,14 @@ body, .app-container, .notes-dashboard-container {
     display: flex;
     flex-direction: column;
     padding: 2rem 1rem 1rem 1rem;
-    min-height: 100vh;
-    z-index: 10;
+    min-height: 0;
+    z-index: 1;
     transition: width 0.2s;
+    position: relative;
+    height: auto;
 }
 
+/* Remove fixed/sticky from dashboard-header */
 .dashboard-header {
     display: flex;
     justify-content: space-between;
@@ -151,6 +143,11 @@ body, .app-container, .notes-dashboard-container {
     font-size: 1.1rem;
     font-weight: 800;
     letter-spacing: 0.01em;
+    position: relative;
+    top: unset;
+    left: unset;
+    width: 100%;
+    background: unset;
 }
 
 .dashboard-header h2 {
@@ -375,11 +372,6 @@ body, .app-container, .notes-dashboard-container {
     animation: noteFadeIn 0.4s cubic-bezier(.23,1.01,.32,1);
     overflow: hidden;
 }
-
-.tiptap.ProseMirror {
-    padding-top: 10px;
-}
-
 .notes-list-cards {
     overflow-y: scroll;
     padding: 10px;
@@ -544,6 +536,7 @@ body, .app-container, .notes-dashboard-container {
     cursor: not-allowed;
 }
 
+/* Main content area should scroll internally, not overflow body */
 .editor-content {
     flex-grow: 1;
     display: flex;
@@ -551,6 +544,8 @@ body, .app-container, .notes-dashboard-container {
     padding: 2.5rem 2.5rem 2rem 2.5rem;
     overflow-y: auto;
     background: #23272a;
+    min-height: 0;
+    max-height: 100%;
 }
 
 .note-title-input {
@@ -1303,16 +1298,17 @@ body, .app-container, .notes-dashboard-container {
     background: #4752c4;
 }
 
+/* Responsive adjustments */
 @media (max-width: 900px) {
     .dashboard-sidebar {
         width: 100vw;
         max-width: 100vw;
         min-width: 0;
-        position: fixed;
-        left: 0;
-        top: 0;
-        height: 100vh;
-        z-index: 100;
+        position: relative;
+        left: unset;
+        top: unset;
+        height: auto;
+        z-index: 1;
         box-shadow: 0 8px 32px #18191c;
         padding: 1.2rem 0.5rem;
         border-radius: 0 0 1.5rem 1.5rem;
@@ -1678,4 +1674,623 @@ aside::-webkit-scrollbar-corner,
 .color-picker-circle::-moz-color-swatch {
   border: none;
   border-radius: 50%;
+}
+
+/* --- Layout Fixes for Editor Overflow --- */
+
+.notes-dashboard-container {
+  display: flex;
+  flex-direction: row;
+  width: 100vw;
+  height: 100vh;
+  min-height: 0;
+  max-height: none;
+  overflow: hidden;
+}
+
+.editor-main {
+  flex: 1 1 0%;
+  min-width: 0;
+  min-height: 0;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-content {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  background: #23272a;
+  display: flex;
+  flex-direction: column;
+}
+
+.tiptap-editor {
+  min-height: 220px;
+  font-size: 1.13rem;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  outline: none;
+  flex: 1 1 0;
+  overflow-x: auto;
+  word-break: break-word;
+  white-space: pre-wrap;
+  max-width: 100%;
+}
+
+/* Code block handling inside editor */
+.tiptap-editor pre, .tiptap-editor code {
+  white-space: pre;
+  word-break: break-all;
+  overflow-x: auto;
+  max-width: 100%;
+  display: block;
+}
+
+/* Prevent sidebar from shrinking */
+.notes-dashboard-container > aside {
+  flex-shrink: 0;
+}
+
+.tiptap {
+    height: 100%;
+}
+
+/* Editor area should always fill available height */
+.editor-main {
+  flex: 1 1 0%;
+  min-width: 0;
+  min-height: 0;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-content,
+.relative.flex-1.flex.flex-col.animate-fadeIn.bg-\[\#23272a\].rounded-\[10px\].min-h-0 {
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tiptap-editor,
+.w-full.min-h-\[300px\].h-full.bg-white\/80.border-2.border-blue-100.rounded-2xl.p-6.shadow-inner.text-lg.font-mono.border.text-blue-900.overflow-auto.animate-popIn.prose.max-w-none {
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+}
+
+/* Margin for copy button */
+.copy-btn-editor {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 20;
+  margin-right: 8px;
+}
+
+/* Font weight normalization */
+.dashboard-header h2,
+.note-card h3,
+.empty-card h1,
+.create-note-cta,
+.custom-dropdown,
+.dropdown-item,
+.add-tag-btn,
+.ultra-tag,
+.tag-suggestion.selected, .tag-suggestion:hover,
+.tag-suggestion,
+.search-result-count,
+.new-note-btn,
+.sidebar-btn {
+  font-weight: 500 !important;
+}
+
+/* Remove font-weight above 500 */
+.dashboard-header h2,
+.note-card h3,
+.empty-card h1,
+.create-note-cta,
+.custom-dropdown,
+.dropdown-item,
+.add-tag-btn,
+.ultra-tag,
+.tag-suggestion.selected, .tag-suggestion:hover,
+.tag-suggestion,
+.search-result-count,
+.new-note-btn,
+.sidebar-btn {
+  font-weight: 500 !important;
+}
+
+/* Copy button animation */
+.copy-btn-editor {
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s, border 0.18s, transform 0.18s;
+  font-weight: 500;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.copy-btn-editor.copied {
+  background: #22c55e !important;
+  color: #fff !important;
+  box-shadow: 0 2px 12px #22c55e44;
+  transform: scale(1.08);
+  border: 1.5px solid #22c55e;
+}
+
+/* General text font-weight normalization */
+body, .app-container, .notes-dashboard-container, .dashboard-header, .note-card, .empty-card, .custom-dropdown, .dropdown-item, .add-tag-btn, .ultra-tag, .tag-suggestion, .search-result-count, .new-note-btn, .sidebar-btn {
+  font-weight: 400;
+}
+
+/* Remove outline and border on focus for tiptap editor */
+.tiptap-editor:focus, .tiptap:focus, .tiptap.ProseMirror:focus {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* --- Advanced Tag UI --- */
+.tag-section-advanced {
+  width: 100%;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 0 0.5rem 0;
+  background: none;
+}
+.tag-list-advanced {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+.tag-pill-advanced {
+  background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 50%, #2563eb 100%);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 500;
+  border-radius: 999px;
+  box-shadow: 0 2px 12px #3b82f633, 0 1.5px 6px #23272a22;
+  padding: 0.5rem 1.3rem 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  transition: box-shadow 0.18s, background 0.18s, transform 0.18s;
+  min-width: 0;
+  animation: tag-pop-in 0.18s;
+}
+.tag-pill-advanced:hover {
+  box-shadow: 0 4px 24px #3b82f655;
+  filter: brightness(1.08);
+  transform: scale(1.06);
+  z-index: 2;
+}
+.tag-label-advanced {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  font-size: 1.05rem;
+}
+.remove-tag-btn-advanced {
+  background: none;
+  border: none;
+  color: #fff;
+  margin-left: 0.2rem;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s, color 0.18s, transform 0.18s;
+  font-size: 1.1rem;
+  opacity: 0.85;
+  padding: 0;
+}
+.remove-tag-btn-advanced:hover {
+  background: #f43f5e;
+  color: #fff;
+  transform: scale(1.18);
+  opacity: 1;
+}
+
+/* Tag Input Advanced */
+.tag-input-advanced {
+  font-size: 1.15rem;
+  font-weight: 500;
+  border-radius: 1.5rem;
+  border: 2px solid #60a5fa;
+  background: #181b22;
+  color: #60a5fa;
+  padding: 0.9rem 1.2rem 0.9rem 1.2rem;
+  outline: none;
+  box-shadow: 0 2px 12px #3b82f622;
+  transition: border 0.2s, box-shadow 0.2s, background 0.2s, color 0.2s;
+  width: 100%;
+  margin-bottom: 0;
+}
+.tag-input-advanced:focus {
+  border: 2px solid #2563eb;
+  background: #23272a;
+  color: #3b82f6;
+}
+.floating-label-advanced {
+  pointer-events: none;
+  left: 1.5rem;
+  color: #60a5fa;
+  font-weight: 400;
+  transition: all 0.2s;
+  background: none;
+}
+.tag-input-advanced.has-value + .floating-label-advanced,
+.tag-input-advanced:focus + .floating-label-advanced {
+  font-size: 0.92rem;
+  top: 0.3rem;
+  color: #2563eb;
+  left: 1.2rem;
+}
+.add-tag-fab-advanced {
+  background: linear-gradient(90deg, #2563eb 60%, #60a5fa 100%);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1.2rem;
+  box-shadow: 0 2px 12px #3b82f633;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s, color 0.18s, transform 0.18s;
+  right: 0.5rem;
+  z-index: 2;
+}
+.add-tag-fab-advanced:hover {
+  background: #2563eb;
+  color: #fff;
+  transform: scale(1.08);
+}
+
+/* Tag Suggestions Dropdown Advanced */
+.tag-suggestions-advanced {
+  background: #23272a;
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px #23272a33, 0 2px 8px #3b82f622;
+  border: 1.5px solid #60a5fa;
+  padding: 0.3rem 0;
+  z-index: 30;
+  width: 100%;
+  min-width: 180px;
+  max-width: 340px;
+  margin: 0 auto;
+  left: 0;
+  right: 0;
+}
+.tag-suggestions-advanced > div {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.2rem;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: #60a5fa;
+  border-radius: 0.7rem;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+.tag-suggestions-advanced > div:hover, .tag-suggestions-advanced > div.selected {
+  background: #e0e7ff;
+  color: #2563eb;
+}
+
+/* Tag Meta and Cloud */
+.tag-meta-advanced {
+  margin-top: 0.5rem;
+  text-align: center;
+}
+.tag-cloud-advanced {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: center;
+  margin-top: 0.2rem;
+}
+.tag-cloud-advanced span {
+  background: linear-gradient(90deg, #dbeafe 0%, #bae6fd 100%);
+  color: #2563eb;
+  font-size: 0.92rem;
+  font-weight: 500;
+  border-radius: 999px;
+  padding: 0.3rem 1.1rem;
+  box-shadow: 0 1.5px 6px #23272a22;
+  border: 1.2px solid #60a5fa;
+  opacity: 0.8;
+  transition: opacity 0.18s, box-shadow 0.18s;
+  cursor: pointer;
+}
+.tag-cloud-advanced span:hover {
+  opacity: 1;
+  box-shadow: 0 4px 16px #3b82f655;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .tag-list-advanced {
+    gap: 0.3rem;
+  }
+  .tag-pill-advanced {
+    font-size: 0.93rem;
+    padding: 0.32rem 0.8rem 0.32rem 0.7rem;
+  }
+  .tag-input-advanced {
+    font-size: 0.97rem;
+    padding: 0.7rem 1rem;
+  }
+  .add-tag-fab-advanced {
+    width: 2rem;
+    height: 2rem;
+    font-size: 1rem;
+  }
+  .tag-suggestions-advanced {
+    font-size: 0.97rem;
+    min-width: 120px;
+    max-width: 220px;
+  }
+  .tag-cloud-advanced span {
+    font-size: 0.89rem;
+    padding: 0.22rem 0.7rem;
+  }
+}
+
+.add-tags-btn-advanced svg 
+ {
+    width: 20px !important;
+}
+
+/* Fix Add Tags button alignment and style */
+.add-tags-btn-advanced {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 60px;
+  min-width: 150px;
+  padding:  0px 30px !important;
+  font-size: 18px;
+  font-weight: 500;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);
+  color: #fff;
+  box-shadow: 0 2px 12px #3b82f633;
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s;
+  cursor: pointer;
+  outline: none;
+  white-space: nowrap;
+}
+.add-tags-btn-advanced:hover {
+  background: linear-gradient(90deg, #1d4ed8 0%, #2563eb 100%);
+  color: #fff;
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 4px 24px #2563eb44;
+}
+.add-tags-btn-advanced svg {
+  width: 1.3em;
+  height: 1.3em;
+  margin-right: 0.5rem;
+  margin-bottom: 0;
+  font-size: 1.2em;
+  vertical-align: middle;
+}
+@media (max-width: 600px) {
+  .add-tags-btn-advanced {
+    height: 48px;
+    font-size: 1rem;
+    padding: 0 1rem;
+    min-width: 110px;
+  }
+}
+
+/* Tag List and Count Section */
+.tag-list-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  margin-top: 30px;
+  animation: fadeIn 0.3s;
+}
+.tag-count-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #3b82f6;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tag-list-main-advanced {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+.tag-pill-main-advanced {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 1.5rem 0.6rem 1.1rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #60a5fa 0%, #2563eb 100%);
+  color: #fff;
+  font-size: 1.08rem;
+  font-weight: 500;
+  box-shadow: 0 2px 12px #3b82f633;
+  position: relative;
+  cursor: pointer;
+  min-width: 0;
+  transition: box-shadow 0.18s, background 0.18s, transform 0.18s;
+  animation: tag-appear 0.18s;
+}
+.tag-pill-main-advanced:hover {
+  background: linear-gradient(90deg, #2563eb 0%, #60a5fa 100%);
+  color: #fff;
+  transform: scale(1.06);
+  box-shadow: 0 4px 24px #2563eb44;
+}
+.tag-icon {
+  width: 1.2em;
+  height: 1.2em;
+  opacity: 0.85;
+}
+.tag-label {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  font-size: 1.08rem;
+}
+.remove-tag-btn-main-advanced {
+  background: none;
+  border: none;
+  color: #fff;
+  margin-left: 0.2rem;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s, color 0.18s, transform 0.18s;
+  font-size: 1.1rem;
+  opacity: 0.5;
+  padding: 0;
+}
+.tag-pill-main-advanced:hover .remove-tag-btn-main-advanced {
+  opacity: 1;
+}
+.remove-tag-btn-main-advanced:hover {
+  background: #f43f5e;
+  color: #fff;
+  transform: scale(1.18);
+  opacity: 1;
+}
+.remove-tag-icon {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+/* Title Section */
+.note-title-section {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-top: 40px;
+  animation: popIn 0.3s;
+}
+.note-title-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #3b82f6;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.note-title-row {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  width: 100%;
+}
+.note-title-input {
+  flex: 1 1 0;
+  font-size: 19px;
+  font-weight: 500;
+  background: #23272a;
+  color: #fff;
+  margin-bottom: 0;
+  border: 2px solid #60a5fa;
+  border-radius: 10px;
+  padding: 15px 20px;
+  outline: none;
+  box-shadow: 0 2px 12px #3b82f622;
+  transition: border 0.2s, box-shadow 0.2s, background 0.2s, color 0.2s;
+  margin-right: 0.5rem;
+}
+.note-title-input:focus {
+  border: 2px solid #2563eb;
+  background: #181b22;
+  color: #3b82f6;
+}
+
+.bg-label {
+    background: antiquewhite;
+    padding: 3px 15px;
+    max-width: fit-content;
+    margin-bottom: 10px;
+    border-radius: 8px;
+}
+
+.tag-modal-content-advanced {
+    max-width: 800px !important;
+    width: 100% !important;
+}
+
+/* Description Label and Editor */
+.note-description-label {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #3b82f6;
+  margin-bottom: 0;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: antiquewhite;
+  padding: 3px 15px;
+  max-width: fit-content;
+  border-radius: 8px;
+}
+.note-description-editor {
+  position: relative;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  background: #23272a;
+  border-radius: 1.5rem;
+  box-shadow: 0 2px 8px #18191c;
+  color: #fff;
+  transition: box-shadow 0.2s;
+  animation: fadeIn 0.3s;
+  /* Remove any extra margin or padding at the top */
+  margin-top: 0;
+  padding-top: 0;
+}
+
+@keyframes tag-appear {
+  0% { transform: scale(0.7) translateY(10px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes popIn {
+  0% { transform: scale(0.95) translateY(-10px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
 }
